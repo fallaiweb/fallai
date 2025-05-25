@@ -1,9 +1,9 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: system-ui, sans-serif;
-  background-color: #1e1e1e;
-  color: #f5f5f5;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #1f1f1f;
+  color: #f0f0f0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -12,18 +12,19 @@ body {
 
 main {
   width: 100%;
-  max-width: 720px;
-  margin: 20px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  max-width: 760px;
+  height: 95vh;
+  margin: 10px;
+  border-radius: 16px;
   background: #2a2a2a;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .chat-header {
-  background-color: #333;
+  background-color: #323232;
   padding: 12px 20px;
   display: flex;
   align-items: center;
@@ -43,81 +44,83 @@ main {
 }
 
 .title {
-  font-size: 1.4em;
-  font-weight: bold;
+  font-size: 1.3em;
+  font-weight: 600;
+}
+
+.note {
+  padding: 10px 20px;
+  font-size: 0.9em;
+  background: #1a1a1a;
+  color: #ccc;
+  border-top: 1px solid #333;
 }
 
 .chat-window {
-  padding: 20px;
+  padding: 16px;
   flex-grow: 1;
   overflow-y: auto;
   scroll-behavior: smooth;
+  position: relative;
 }
 
 .message {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+  display: flex;
+}
+
+.bubble {
+  padding: 12px 16px;
+  border-radius: 16px;
+  max-width: 80%;
+  background: #3a3a3a;
   line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
-.user {
-  color: #aadffd;
-  font-weight: bold;
+.user .bubble {
+  background: #005a9e;
+  color: white;
+  margin-left: auto;
 }
 
-.bot {
-  color: #f5c16c;
-  font-weight: bold;
-}
-
-pre {
-  background: #1e1e1e;
-  padding: 12px;
-  border-radius: 6px;
-  overflow-x: auto;
-}
-
-code {
-  font-family: monospace;
-  font-size: 0.95em;
+.ai .bubble {
+  background: #444;
 }
 
 form {
   display: flex;
   border-top: 1px solid #444;
-  background-color: #2c2c2c;
+  background-color: #2d2d2d;
 }
 
 textarea {
   flex-grow: 1;
-  padding: 12px;
+  padding: 14px;
   font-size: 1em;
-  border: none;
-  resize: none;
   background: #1e1e1e;
   color: #fff;
-  border-radius: 0;
+  border: none;
+  resize: none;
   outline: none;
 }
 
 button {
-  background-color: #444;
+  background: none;
   border: none;
-  color: #fff;
-  padding: 0 20px;
+  color: white;
+  padding: 0 18px;
+  font-size: 1.3em;
   cursor: pointer;
-  font-size: 1.2em;
-  display: flex;
+  transition: background 0.2s;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.3s ease;
 }
 
 button:hover {
-  background-color: #666;
-}
-
-#stop-button {
-  display: none;
+  background: #444;
 }
 
 .footer-link {
@@ -125,49 +128,59 @@ button:hover {
   font-size: 0.9em;
   padding: 12px;
   background: #1a1a1a;
-  border-top: 1px solid #444;
+  border-top: 1px solid #333;
 }
 
-.note {
-  background-color: #1a1a1a;
-  padding: 10px 20px;
-  font-size: 0.9em;
-  border-top: 1px solid #333;
-  color: #bbb;
+.copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #333;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  font-size: 0.8em;
+  cursor: pointer;
+}
+
+pre {
+  position: relative;
+  background: #111;
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+#scroll-down {
+  position: absolute;
+  right: 10px;
+  bottom: 90px;
+  z-index: 10;
+  background: #333;
+  border-radius: 50%;
+  padding: 10px;
+  font-size: 1.2em;
+  display: none;
+  cursor: pointer;
+  color: white;
+  border: none;
+}
+
+#scroll-down:hover {
+  background: #555;
 }
 
 /* Custom scrollbars */
 .chat-window::-webkit-scrollbar {
   width: 8px;
 }
-
 .chat-window::-webkit-scrollbar-track {
-  background: #2e2e2e;
+  background: #2a2a2a;
 }
-
 .chat-window::-webkit-scrollbar-thumb {
   background: #555;
   border-radius: 4px;
 }
-
 .chat-window::-webkit-scrollbar-thumb:hover {
   background: #777;
-}
-
-/* Scroll down button */
-#scroll-down-btn {
-  position: absolute;
-  bottom: 100px;
-  right: 20px;
-  background-color: #444;
-  padding: 10px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: none;
-  z-index: 10;
-  transition: background-color 0.3s;
-}
-
-#scroll-down-btn:hover {
-  background-color: #666;
 }
