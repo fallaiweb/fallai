@@ -2,14 +2,15 @@ const GROQ_API_KEY = "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";
 const MODEL = "llama3-8b-8192";
 
 let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
-let aiStopped = false;
-let isTyping = false;
 
 const chatWindow = document.getElementById("chat-window");
 const chatForm = document.getElementById("chat-form");
 const userInput = document.getElementById("user-input");
 const sendButton = document.getElementById("send-button");
 const stopButton = document.getElementById("stop-button");
+
+let controller = null;
+let isAITyping = false;
 
 function addMessage(role, content, isTyping = false) {
   const msgDiv = document.createElement("div");
@@ -38,68 +39,56 @@ function addCopyButton(pre) {
   const btn = document.createElement("button");
   btn.className = "copy-btn";
   btn.textContent = "Copy";
+  btn.title = "Kopiere Code";
   btn.onclick = () => {
     const code = pre.querySelector("code");
-    navigator.clipboard.writeText(code.textContent);
-    btn.textContent = "Copied!";
-    setTimeout(() => (btn.textContent = "Copy"), 1200);
+    if (code) {
+      navigator.clipboard.writeText(code.textContent);
+      btn.textContent = "Copied!";
+      setTimeout(() => (btn.textContent = "Copy"), 1200);
+    }
   };
   pre.prepend(btn);
 }
 
 async function typeMessage(bubble, fullText) {
+  isAITyping = true;
   bubble.innerHTML = "";
   let i = 0;
-  isTyping = true;
-  stopButton.disabled = false;
-  sendButton.disabled = true;
-
-  while (i < fullText.length && !aiStopped) {
-    if (fullText.slice(i, i + 3) === "```") {
-      const end = fullText.indexOf("```", i + 3);
-      if (end !== -1) {
-        bubble.innerHTML += marked.parse(fullText.slice(i, end + 3));
-        i = end + 3;
-        continue;
-      }
-    }
+  while (i < fullText.length) {
+    if (!isAITyping) return;
     bubble.innerHTML += fullText[i++];
     chatWindow.scrollTop = chatWindow.scrollHeight;
-    await new Promise((res) => setTimeout(res, 8 + Math.random() * 30));
+    await new Promise((res) => setTimeout(res, 8 + Math.random() * 25));
   }
-
-  bubble.innerHTML = marked.parse(aiStopped ? fullText.slice(0, i) : fullText);
+  bubble.innerHTML = marked.parse(fullText);
   bubble.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
   bubble.querySelectorAll("pre").forEach((pre) => addCopyButton(pre));
-
-  isTyping = false;
-  aiStopped = false;
-  stopButton.disabled = true;
-  sendButton.disabled = false;
+  isAITyping = false;
 }
 
 async function sendMessage() {
-  if (isTyping) return;
-
   const msg = userInput.value.trim();
-  if (!msg) return;
+  if (!msg || isAITyping) return;
 
   addMessage("user", msg);
   userInput.value = "";
+  sendButton.disabled = true;
 
   const aiBubble = addMessage("ai", "...", true);
+
   chatHistory.push({ role: "user", content: msg });
 
   const context = [
     {
       role: "system",
-      content:
-        "You are Fall AI, a helpful and friendly assistant for the web. Format code as Markdown. Keep answers concise and helpful.",
+      content: "You are Fall AI, a helpful and friendly assistant. Format with markdown and code.",
     },
     ...chatHistory.slice(-6),
   ];
 
   try {
+    controller = new AbortController();
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -107,6 +96,7 @@ async function sendMessage() {
         Authorization: "Bearer " + GROQ_API_KEY,
       },
       body: JSON.stringify({ model: MODEL, messages: context }),
+      signal: controller.signal,
     });
 
     const data = await res.json();
@@ -123,10 +113,16 @@ async function sendMessage() {
     }
   } catch (err) {
     aiBubble.classList.remove("typing");
-    aiBubble.textContent = "⚠️ Netzwerkfehler oder ungültiger API-Key: " + (err.message || "Unbekannter Fehler");
+    if (err.name === "AbortError") {
+      aiBubble.textContent = "⛔ AI gestoppt.";
+    } else {
+      aiBubble.textContent = "⚠️ Fehler: " + err.message;
+    }
   }
 
-  chatWindow.scrollTop = chatWindow.scrollHeight;
+  controller = null;
+  isAITyping = false;
+  sendButton.disabled = false;
 }
 
 chatForm.addEventListener("submit", (e) => {
@@ -142,7 +138,10 @@ userInput.addEventListener("keydown", (e) => {
 });
 
 stopButton.addEventListener("click", () => {
-  aiStopped = true;
+  if (controller) {
+    isAITyping = false;
+    controller.abort();
+  }
 });
 
 window.addEventListener("resize", () => {
