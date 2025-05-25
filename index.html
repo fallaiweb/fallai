@@ -1,42 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>🍂 Fall AI Web Chat</title>
-  <link rel="stylesheet" href="style2.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Fall AI Web Chat</title>
+  <link rel="stylesheet" href="style2.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 <body>
   <main>
     <section class="chat-section" id="chat-section">
       <div class="chat-header">
         <div class="header-left">
-          <img src="https://cdn.discordapp.com/avatars/1376180153654448180/8480b484883b0cf5f0db39ee90405fd7.webp?size=1024" class="avatar" alt="Fall AI">
-          <h1><span class="emoji">🍂</span> <span class="title">Fall AI Web Chat</span></h1>
+          <img src="https://cdn.discordapp.com/avatars/1376180153654448180/8480b484883b0cf5f0db39ee90405fd7.webp?size=1024" class="avatar" alt="Fall AI" />
+          <h1><span class="title">Fall AI Web Chat</span></h1>
         </div>
       </div>
+
       <div class="note">
-        <p><strong>About Fall AI:</strong> This AI is new so it can hapen mistakes or website errors like the design is not loaded!</p>
+        <p><strong>About Fall AI:</strong> This AI is new so it can happen mistakes or website errors like the design not loading correctly!</p>
       </div>
+
       <div class="chat-window" id="chat-window"></div>
 
       <form id="chat-form" autocomplete="off">
         <textarea id="user-input" placeholder="Type your message..." autocomplete="off" required></textarea>
         <button id="send-button" type="submit" title="Send">
-          📤
+          <i class="fa-solid fa-paper-plane"></i>
         </button>
-        <button id="stop-button" type="button" style="display:none;" title="Stop AI Response">
-          ✋
+        <button id="stop-button" type="button" title="Stop AI Response">
+          <i class="fa-solid fa-stop"></i>
         </button>
       </form>
+
+      <div id="scroll-down-btn" title="Scroll to bottom">
+        <i class="fa-solid fa-arrow-down"></i>
+      </div>
 
       <div class="footer-link">
         <a href="https://fallai.neocities.org" target="_blank">🍂 Fall AI ~ https://fallai.neocities.org 🍂</a>
       </div>
-    <p><strong>Tipp:</strong> Press enter to cancle the interaction!</p>
+      <p><strong>Tip:</strong> Press enter to cancel the interaction!</p>
     </section>
   </main>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="script2.js"></script>
