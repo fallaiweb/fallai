@@ -52,7 +52,6 @@ function addMessage(role, content, isTyping = false) {
 async function typeMessage(bubble, fullText) {
   bubble.innerHTML = "";
   let i = 0;
-
   while (i < fullText.length) {
     if (fullText.slice(i, i + 3) === "```") {
       const end = fullText.indexOf("```", i + 3);
@@ -62,20 +61,11 @@ async function typeMessage(bubble, fullText) {
         continue;
       }
     }
-
     bubble.innerHTML += fullText[i];
     i++;
-
-    // === Nur scrollen, wenn User ganz unten ist ===
-    const isAtBottom = chatWindow.scrollHeight - chatWindow.scrollTop <= chatWindow.clientHeight + 50;
-    if (isAtBottom) {
-      chatWindow.scrollTop = chatWindow.scrollHeight;
-    }
-
+    chatWindow.scrollTop = chatWindow.scrollHeight;
     await new Promise((res) => setTimeout(res, 8 + Math.random() * 30));
   }
-
-  // === Nach dem Tippen volle Nachricht formatieren ===
   bubble.innerHTML = marked.parse(fullText);
   bubble.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
   bubble.querySelectorAll("pre").forEach((pre) => {
@@ -94,9 +84,6 @@ async function typeMessage(bubble, fullText) {
       pre.prepend(btn);
     }
   });
-
-  // Nachträgliches Scrollen ganz ans Ende
-  chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
 // === Nachricht senden ===
