@@ -16,7 +16,7 @@ main {
   margin: 20px;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
   background: #2a2a2a;
   display: flex;
   flex-direction: column;
@@ -108,11 +108,16 @@ button {
   font-size: 1.2em;
   display: flex;
   align-items: center;
+  justify-content: center;
   transition: background-color 0.3s ease;
 }
 
 button:hover {
   background-color: #666;
+}
+
+#stop-button {
+  display: none;
 }
 
 .footer-link {
@@ -147,4 +152,22 @@ button:hover {
 
 .chat-window::-webkit-scrollbar-thumb:hover {
   background: #777;
+}
+
+/* Scroll down button */
+#scroll-down-btn {
+  position: absolute;
+  bottom: 100px;
+  right: 20px;
+  background-color: #444;
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: none;
+  z-index: 10;
+  transition: background-color 0.3s;
+}
+
+#scroll-down-btn:hover {
+  background-color: #666;
 }
