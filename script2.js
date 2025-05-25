@@ -1,7 +1,6 @@
 const GROQ_API_KEY = "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";
 const MODEL = "llama3-8b-8192";
 
-let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
 let isTyping = false;
 let shouldStopTyping = false;
 
@@ -10,14 +9,14 @@ const chatForm = document.getElementById("chat-form");
 const userInput = document.getElementById("user-input");
 const sendButton = document.getElementById("send-button");
 const stopButton = document.getElementById("stop-button");
-const scrollDownBtn = document.getElementById("scroll-down-btn");
+const scrollDownBtn = document.getElementById("scroll-down");
 
-function addMessage(role, content, isTyping = false) {
+function addMessage(role, content, typing = false) {
   const msgDiv = document.createElement("div");
   msgDiv.className = "message " + (role === "user" ? "user" : "ai");
 
   const bubble = document.createElement("div");
-  bubble.className = "bubble" + (isTyping ? " typing" : "");
+  bubble.className = "bubble" + (typing ? " typing" : "");
   bubble.setAttribute("data-role", role);
 
   if (role === "user") {
@@ -30,7 +29,7 @@ function addMessage(role, content, isTyping = false) {
 
   msgDiv.appendChild(bubble);
   chatWindow.appendChild(msgDiv);
-  chatWindow.scrollTop = chatWindow.scrollHeight;
+  scrollToBottom();
   return bubble;
 }
 
@@ -39,13 +38,12 @@ function addCopyButton(pre) {
   const btn = document.createElement("button");
   btn.className = "copy-btn";
   btn.textContent = "Copy";
-  btn.title = "Copy the code!";
   btn.onclick = () => {
     const code = pre.querySelector("code");
     if (code) {
       navigator.clipboard.writeText(code.textContent);
       btn.textContent = "Copied!";
-      setTimeout(() => (btn.textContent = "Copy"), 1200);
+      setTimeout(() => (btn.textContent = "Copy"), 1000);
     }
   };
   pre.prepend(btn);
@@ -55,21 +53,13 @@ async function typeMessage(bubble, fullText) {
   bubble.innerHTML = "";
   let i = 0;
   isTyping = true;
-  stopButton.style.display = "inline-block";
   sendButton.style.display = "none";
+  stopButton.style.display = "inline-flex";
 
   while (i < fullText.length && !shouldStopTyping) {
-    if (fullText.slice(i, i + 3) === "```") {
-      const end = fullText.indexOf("```", i + 3);
-      if (end !== -1) {
-        bubble.innerHTML += marked.parse(fullText.slice(i, end + 3));
-        i = end + 3;
-        continue;
-      }
-    }
     bubble.innerHTML += fullText[i++];
-    chatWindow.scrollTop = chatWindow.scrollHeight;
-    await new Promise((res) => setTimeout(res, 8 + Math.random() * 30));
+    scrollToBottom();
+    await new Promise((res) => setTimeout(res, 8 + Math.random() * 25));
   }
 
   if (!shouldStopTyping) {
@@ -77,20 +67,18 @@ async function typeMessage(bubble, fullText) {
     bubble.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
     bubble.querySelectorAll("pre").forEach((pre) => addCopyButton(pre));
   } else {
-    bubble.innerHTML += "\n\n⛔ Answer canceled.";
+    bubble.innerHTML += "\n\n🛑 Stopped by user.";
   }
 
   isTyping = false;
   shouldStopTyping = false;
   stopButton.style.display = "none";
-  sendButton.style.display = "inline-block";
+  sendButton.style.display = "inline-flex";
 }
 
 async function sendMessage() {
   if (isTyping) {
     shouldStopTyping = true;
-    stopButton.style.display = "none";
-    sendButton.style.display = "inline-block";
     return;
   }
 
@@ -101,14 +89,13 @@ async function sendMessage() {
   userInput.value = "";
 
   const aiBubble = addMessage("ai", "...", true);
-  chatHistory.push({ role: "user", content: msg });
 
   const context = [
     {
       role: "system",
-      content: "You are Fall AI, a helpful and friendly assistant for the web. Format code as Markdown. Keep answers concise and helpful.",
+      content: "You are Fall AI, a helpful and friendly assistant. Format all code in Markdown. Keep answers helpful and clear.",
     },
-    ...chatHistory.slice(-6),
+    { role: "user", content: msg }
   ];
 
   try {
@@ -127,23 +114,30 @@ async function sendMessage() {
     aiBubble.classList.remove("typing");
 
     if (aiText) {
-      chatHistory.push({ role: "assistant", content: aiText });
-      localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
       await typeMessage(aiBubble, aiText.trim());
     } else {
-      aiBubble.textContent = "⚠️ API Error: " + (data.error?.message || "No response.");
+      aiBubble.textContent = "⚠️ API Error: " + (data.error?.message || "No response received.");
     }
   } catch (err) {
     aiBubble.classList.remove("typing");
-    aiBubble.textContent = "⚠️ Network or API key error: " + (err.message || "Unknown error");
+    aiBubble.textContent = "⚠️ Network/API error: " + (err.message || "Unknown error.");
   }
 
+  scrollToBottom();
+}
+
+function scrollToBottom() {
   chatWindow.scrollTop = chatWindow.scrollHeight;
+  scrollDownBtn.style.display = "none";
 }
 
 chatForm.addEventListener("submit", (e) => {
   e.preventDefault();
   sendMessage();
+});
+
+stopButton.addEventListener("click", () => {
+  shouldStopTyping = true;
 });
 
 userInput.addEventListener("keydown", (e) => {
@@ -153,16 +147,16 @@ userInput.addEventListener("keydown", (e) => {
   }
 });
 
-window.addEventListener("DOMContentLoaded", () => {
-  chatHistory.forEach((msg) => addMessage(msg.role, msg.content));
-  chatWindow.scrollTop = chatWindow.scrollHeight;
-});
-
 chatWindow.addEventListener("scroll", () => {
-  const nearBottom = chatWindow.scrollTop + chatWindow.clientHeight >= chatWindow.scrollHeight - 50;
-  scrollDownBtn.style.display = nearBottom ? "none" : "block";
+  if (chatWindow.scrollTop + chatWindow.clientHeight < chatWindow.scrollHeight - 100) {
+    scrollDownBtn.style.display = "block";
+  } else {
+    scrollDownBtn.style.display = "none";
+  }
 });
 
-scrollDownBtn.addEventListener("click", () => {
-  chatWindow.scrollTop = chatWindow.scrollHeight;
+scrollDownBtn.addEventListener("click", scrollToBottom);
+
+window.addEventListener("DOMContentLoaded", () => {
+  // No chatHistory loading -> history will reset on reload
 });
