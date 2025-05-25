@@ -94,6 +94,7 @@ main {
   color: #FFA500;
 }
 .chat-window {
+  /* vorhandene Eigenschaften bleiben */
   background: #23272a;
   border-radius: 10px;
   flex: 1 1 auto;
@@ -106,6 +107,29 @@ main {
   font-size: 1.22rem;
   display: flex;
   flex-direction: column;
+
+  /* Neue Scrollbar-Stile */
+  scrollbar-width: thin;
+  scrollbar-color: #FFA50040 #2f3136;
+}
+
+.chat-window::-webkit-scrollbar {
+  width: 10px;
+}
+
+.chat-window::-webkit-scrollbar-track {
+  background: #2f3136;
+  border-radius: 10px;
+}
+
+.chat-window::-webkit-scrollbar-thumb {
+  background-color: #FFA50099;
+  border-radius: 10px;
+  border: 2px solid #2f3136;
+}
+
+.chat-window::-webkit-scrollbar-thumb:hover {
+  background-color: #FFA500;
 }
 .message {
   margin-bottom: 1.7rem;
