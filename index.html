@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Fall AI Web Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fall AI Chat</title>
   <link rel="stylesheet" href="style2.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://kit.fontawesome.com/a2e0fae88d.js" crossorigin="anonymous"></script>
 </head>
 <body>
   <main>
@@ -14,34 +14,28 @@
       <div class="chat-header">
         <div class="header-left">
           <img src="https://cdn.discordapp.com/avatars/1376180153654448180/8480b484883b0cf5f0db39ee90405fd7.webp?size=1024" class="avatar" alt="Fall AI" />
-          <h1><span class="title">Fall AI Web Chat</span></h1>
+          <h1><i class="fas fa-leaf"></i> <span class="title">Fall AI Chat</span></h1>
         </div>
       </div>
 
       <div class="note">
-        <p><strong>About Fall AI:</strong> This AI is new so it can happen mistakes or website errors like the design not loading correctly!</p>
+        <p><strong>About Fall AI:</strong> This AI is still learning. Errors may occur, especially in layout or response quality.</p>
       </div>
 
       <div class="chat-window" id="chat-window"></div>
 
+      <button id="scroll-down" title="Scroll to bottom"><i class="fas fa-arrow-down"></i></button>
+
       <form id="chat-form" autocomplete="off">
-        <textarea id="user-input" placeholder="Type your message..." autocomplete="off" required></textarea>
-        <button id="send-button" type="submit" title="Send">
-          <i class="fa-solid fa-paper-plane"></i>
-        </button>
-        <button id="stop-button" type="button" title="Stop AI Response">
-          <i class="fa-solid fa-stop"></i>
-        </button>
+        <textarea id="user-input" placeholder="Type your message..." required></textarea>
+        <button id="send-button" type="submit" title="Send"><i class="fas fa-paper-plane"></i></button>
+        <button id="stop-button" type="button" style="display:none;" title="Stop AI"><i class="fas fa-stop"></i></button>
       </form>
 
-      <div id="scroll-down-btn" title="Scroll to bottom">
-        <i class="fa-solid fa-arrow-down"></i>
-      </div>
-
       <div class="footer-link">
-        <a href="https://fallai.neocities.org" target="_blank">🍂 Fall AI ~ https://fallai.neocities.org 🍂</a>
+        <a href="https://fallai.neocities.org" target="_blank"><i class="fas fa-leaf"></i> Fall AI ~ https://fallai.neocities.org</a>
       </div>
-      <p><strong>Tip:</strong> Press enter to cancel the interaction!</p>
+      <p><strong>Tip:</strong> Press Enter to send, Shift + Enter for newline.</p>
     </section>
   </main>
 
