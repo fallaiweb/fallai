@@ -1,3 +1,4 @@
+/* Grundlayout */
 body {
   margin: 0;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -22,6 +23,7 @@ header p {
   color: #666;
 }
 
+/* Chatfenster */
 #chat-window {
   max-height: 70vh;
   overflow-y: auto;
@@ -44,6 +46,7 @@ header p {
   justify-content: flex-start;
 }
 
+/* Sprechblasen */
 .bubble {
   padding: 0.8rem 1.2rem;
   border-radius: 1.2rem;
@@ -66,10 +69,12 @@ header p {
   border-bottom-left-radius: 0;
 }
 
+/* Eingabe & Buttons */
 form {
   display: flex;
   gap: 0.5rem;
   margin-top: 1rem;
+  align-items: center;
 }
 
 form textarea {
@@ -82,9 +87,8 @@ form textarea {
   height: 3rem;
 }
 
+/* Gemeinsamer Button-Stil */
 form button {
-  background: #FFA500;
-  color: white;
   border: none;
   border-radius: 999px;
   padding: 0.8rem 1.6rem;
@@ -92,13 +96,47 @@ form button {
   font-weight: bold;
   cursor: pointer;
   transition: background 0.2s;
-  box-shadow: 0 2px 8px #ffa50044;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-form button:hover {
+/* Senden-Button */
+#send-button {
+  background: #FFA500;
+  color: white;
+}
+
+#send-button:hover {
   background: #ffb733;
 }
 
+/* Stop-Button */
+#stop-button {
+  background: #ff4d4d;
+  color: white;
+  display: none; /* nur sichtbar wenn bot schreibt */
+}
+
+#stop-button:hover {
+  background: #ff3333;
+}
+
+/* Codeblock */
+pre {
+  position: relative;
+  padding: 1rem;
+  background: #1e1e1e;
+  color: white;
+  border-radius: 0.8rem;
+  overflow-x: auto;
+  margin-top: 0.5rem;
+}
+
+code {
+  font-family: "Fira Code", monospace;
+  font-size: 0.95rem;
+}
+
+/* Copy-Button für Code */
 .copy-btn {
   position: absolute;
   top: 0.4rem;
@@ -116,21 +154,7 @@ form button:hover {
   background: #ccc;
 }
 
-pre {
-  position: relative;
-  padding: 1rem;
-  background: #1e1e1e;
-  color: white;
-  border-radius: 0.8rem;
-  overflow-x: auto;
-  margin-top: 0.5rem;
-}
-
-code {
-  font-family: "Fira Code", monospace;
-  font-size: 0.95rem;
-}
-
+/* Footer-Link */
 .footer-link {
   text-align: center;
   font-size: 0.85rem;
