@@ -1,9 +1,9 @@
 // --- Fall AI Web Chat with Groq Cloud API ---
 
-const GROQ_API_KEY = "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"; // <--- Dein API-Key
-const MODEL = "llama3-8b-8192"; // Alternativ: "mixtral-8x7b-32768", "gemma-7b-it"
+const GROQ_API_KEY = "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";
+const MODEL = "llama3-8b-8192";
 
-let chatHistory = [];
+let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
 
 const chatWindow = document.getElementById("chat-window");
 const chatForm = document.getElementById("chat-form");
@@ -16,36 +16,37 @@ function addMessage(role, content, isTyping = false) {
 
   const bubble = document.createElement("div");
   bubble.className = "bubble" + (isTyping ? " typing" : "");
+  bubble.setAttribute("data-role", role);
 
   if (role === "user") {
     bubble.textContent = content;
   } else {
-    bubble.innerHTML = marked.parse(content);
-    bubble.querySelectorAll("pre code").forEach((block) => {
-      hljs.highlightElement(block);
-    });
-    bubble.querySelectorAll("pre").forEach((pre) => {
-      if (!pre.querySelector(".copy-btn")) {
-        const btn = document.createElement("button");
-        btn.className = "copy-btn";
-        btn.textContent = "Copy";
-        btn.onclick = () => {
-          const code = pre.querySelector("code");
-          if (code) {
-            navigator.clipboard.writeText(code.textContent);
-            btn.textContent = "Copied!";
-            setTimeout(() => (btn.textContent = "Copy"), 1200);
-          }
-        };
-        pre.prepend(btn);
-      }
-    });
+    bubble.innerHTML = marked.parse(content || "");
+    bubble.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
+    bubble.querySelectorAll("pre").forEach((pre) => addCopyButton(pre));
   }
 
   msgDiv.appendChild(bubble);
   chatWindow.appendChild(msgDiv);
   chatWindow.scrollTop = chatWindow.scrollHeight;
   return bubble;
+}
+
+function addCopyButton(pre) {
+  if (pre.querySelector(".copy-btn")) return;
+  const btn = document.createElement("button");
+  btn.className = "copy-btn";
+  btn.textContent = "Copy";
+  btn.title = "Kopiere Code in Zwischenablage";
+  btn.onclick = () => {
+    const code = pre.querySelector("code");
+    if (code) {
+      navigator.clipboard.writeText(code.textContent);
+      btn.textContent = "Copied!";
+      setTimeout(() => (btn.textContent = "Copy"), 1200);
+    }
+  };
+  pre.prepend(btn);
 }
 
 // === AI Typing Effekt ===
@@ -61,29 +62,13 @@ async function typeMessage(bubble, fullText) {
         continue;
       }
     }
-    bubble.innerHTML += fullText[i];
-    i++;
+    bubble.innerHTML += fullText[i++];
     chatWindow.scrollTop = chatWindow.scrollHeight;
     await new Promise((res) => setTimeout(res, 8 + Math.random() * 30));
   }
   bubble.innerHTML = marked.parse(fullText);
   bubble.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
-  bubble.querySelectorAll("pre").forEach((pre) => {
-    if (!pre.querySelector(".copy-btn")) {
-      const btn = document.createElement("button");
-      btn.className = "copy-btn";
-      btn.textContent = "Copy";
-      btn.onclick = () => {
-        const code = pre.querySelector("code");
-        if (code) {
-          navigator.clipboard.writeText(code.textContent);
-          btn.textContent = "Copied!";
-          setTimeout(() => (btn.textContent = "Copy"), 1200);
-        }
-      };
-      pre.prepend(btn);
-    }
-  });
+  bubble.querySelectorAll("pre").forEach((pre) => addCopyButton(pre));
 }
 
 // === Nachricht senden ===
@@ -113,30 +98,25 @@ async function sendMessage() {
         "Content-Type": "application/json",
         Authorization: "Bearer " + GROQ_API_KEY,
       },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: context,
-      }),
+      body: JSON.stringify({ model: MODEL, messages: context }),
     });
 
     const data = await res.json();
     const aiText = data.choices?.[0]?.message?.content;
 
+    aiBubble.classList.remove("typing");
+
     if (aiText) {
       chatHistory.push({ role: "assistant", content: aiText });
-      aiBubble.classList.remove("typing");
+      localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
       await typeMessage(aiBubble, aiText.trim());
-    } else if (data.error?.message) {
-      aiBubble.classList.remove("typing");
-      aiBubble.textContent = "Groq API error: " + data.error.message;
     } else {
-      aiBubble.classList.remove("typing");
-      aiBubble.textContent = "Sorry, I couldn't get a response from Groq Cloud.";
+      aiBubble.textContent = "⚠️ API Error: " + (data.error?.message || "Keine Antwort erhalten.");
     }
   } catch (err) {
     aiBubble.classList.remove("typing");
     aiBubble.textContent =
-      "Fehler: " + (err.message || "Netzwerkfehler oder ungültiger API-Schlüssel.");
+      "⚠️ Netzwerkfehler oder ungültiger API-Key: " + (err.message || "Unbekannter Fehler");
   }
 
   chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -148,7 +128,6 @@ chatForm.addEventListener("submit", (e) => {
   sendMessage();
 });
 
-// === Enter drücken zum Senden, Shift+Enter für neue Zeile ===
 userInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
@@ -160,3 +139,14 @@ userInput.addEventListener("keydown", (e) => {
 window.addEventListener("resize", () => {
   chatWindow.scrollTop = chatWindow.scrollHeight;
 });
+
+// === Chatverlauf anzeigen bei Start ===
+window.addEventListener("DOMContentLoaded", () => {
+  chatHistory.forEach((msg) => addMessage(msg.role, msg.content));
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+});
+
+// === (Optional) Theme Toggle ===
+// document.getElementById("theme-toggle").addEventListener("click", () => {
+//   document.body.classList.toggle("dark");
+// });
