@@ -1,22 +1,21 @@
 const GROQ_API_KEY = "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";
 const MODEL = "llama3-8b-8192";
 
+let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
 let isTyping = false;
 let shouldStopTyping = false;
 
 const chatWindow = document.getElementById("chat-window");
 const chatForm = document.getElementById("chat-form");
 const userInput = document.getElementById("user-input");
-const sendButton = document.getElementById("send-button");
 const stopButton = document.getElementById("stop-button");
-const scrollDownBtn = document.getElementById("scroll-down-btn");
 
 function addMessage(role, content, isTyping = false) {
   const msgDiv = document.createElement("div");
-  msgDiv.className = `message ${role}`;
+  msgDiv.className = "message " + (role === "user" ? "user" : "ai");
 
   const bubble = document.createElement("div");
-  bubble.className = "bubble";
+  bubble.className = "bubble" + (isTyping ? " typing" : "");
   bubble.setAttribute("data-role", role);
 
   if (role === "user") {
@@ -24,12 +23,30 @@ function addMessage(role, content, isTyping = false) {
   } else {
     bubble.innerHTML = marked.parse(content || "");
     bubble.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
+    bubble.querySelectorAll("pre").forEach((pre) => addCopyButton(pre));
   }
 
   msgDiv.appendChild(bubble);
   chatWindow.appendChild(msgDiv);
   chatWindow.scrollTop = chatWindow.scrollHeight;
   return bubble;
+}
+
+function addCopyButton(pre) {
+  if (pre.querySelector(".copy-btn")) return;
+  const btn = document.createElement("button");
+  btn.className = "copy-btn";
+  btn.textContent = "Copy";
+  btn.title = "Kopiere Code in Zwischenablage";
+  btn.onclick = () => {
+    const code = pre.querySelector("code");
+    if (code) {
+      navigator.clipboard.writeText(code.textContent);
+      btn.textContent = "Copied!";
+      setTimeout(() => (btn.textContent = "Copy"), 1200);
+    }
+  };
+  pre.prepend(btn);
 }
 
 async function typeMessage(bubble, fullText) {
@@ -39,6 +56,14 @@ async function typeMessage(bubble, fullText) {
   stopButton.style.display = "inline-block";
 
   while (i < fullText.length && !shouldStopTyping) {
+    if (fullText.slice(i, i + 3) === "```") {
+      const end = fullText.indexOf("```", i + 3);
+      if (end !== -1) {
+        bubble.innerHTML += marked.parse(fullText.slice(i, end + 3));
+        i = end + 3;
+        continue;
+      }
+    }
     bubble.innerHTML += fullText[i++];
     chatWindow.scrollTop = chatWindow.scrollHeight;
     await new Promise((res) => setTimeout(res, 8 + Math.random() * 30));
@@ -47,8 +72,9 @@ async function typeMessage(bubble, fullText) {
   if (!shouldStopTyping) {
     bubble.innerHTML = marked.parse(fullText);
     bubble.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
+    bubble.querySelectorAll("pre").forEach((pre) => addCopyButton(pre));
   } else {
-    bubble.innerHTML += "\n\n⛔ Answer canceled.";
+    bubble.innerHTML += "\n\n⛔ Antwort abgebrochen.";
   }
 
   isTyping = false;
@@ -57,10 +83,7 @@ async function typeMessage(bubble, fullText) {
 }
 
 async function sendMessage() {
-  if (isTyping) {
-    shouldStopTyping = true;
-    return;
-  }
+  if (isTyping) return;
 
   const msg = userInput.value.trim();
   if (!msg) return;
@@ -70,12 +93,15 @@ async function sendMessage() {
 
   const aiBubble = addMessage("ai", "...", true);
 
+  chatHistory.push({ role: "user", content: msg });
+
   const context = [
     {
       role: "system",
-      content: "You are Fall AI, a helpful and friendly assistant for the web. Format code as Markdown. Keep answers concise and helpful.",
+      content:
+        "You are Fall AI, a helpful and friendly assistant for the web. Format code as Markdown. Keep answers concise and helpful.",
     },
-    { role: "user", content: msg },
+    ...chatHistory.slice(-6),
   ];
 
   try {
@@ -93,6 +119,47 @@ async function sendMessage() {
 
     aiBubble.classList.remove("typing");
 
-    if
-::contentReference[oaicite:32]{index=32}
- 
+    if (aiText) {
+      chatHistory.push({ role: "assistant", content: aiText });
+      localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+      await typeMessage(aiBubble, aiText.trim());
+    } else {
+      aiBubble.textContent = "⚠️ API Error: " + (data.error?.message || "Keine Antwort erhalten.");
+    }
+  } catch (err) {
+    aiBubble.classList.remove("typing");
+    aiBubble.textContent =
+      "⚠️ Netzwerkfehler oder ungültiger API-Key: " + (err.message || "Unbekannter Fehler");
+  }
+
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+chatForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  sendMessage();
+});
+
+userInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+stopButton.addEventListener("click", () => {
+  if (isTyping) {
+    shouldStopTyping = true;
+    stopButton.textContent = "⏳ Stoppe...";
+    stopButton.disabled = true;
+  }
+});
+
+window.addEventListener("resize", () => {
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+});
+
+window.addEventListener("DOMContentLoaded", () => {
+  chatHistory.forEach((msg) => addMessage(msg.role, msg.content));
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+});
