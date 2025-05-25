@@ -9,6 +9,8 @@ const chatWindow = document.getElementById("chat-window");
 const chatForm = document.getElementById("chat-form");
 const userInput = document.getElementById("user-input");
 const sendButton = document.getElementById("send-button");
+const stopButton = document.getElementById("stop-button");
+const scrollDownBtn = document.getElementById("scroll-down-btn");
 
 function addMessage(role, content, isTyping = false) {
   const msgDiv = document.createElement("div");
@@ -53,7 +55,8 @@ async function typeMessage(bubble, fullText) {
   bubble.innerHTML = "";
   let i = 0;
   isTyping = true;
-  updateSendButton("🛑");
+  stopButton.style.display = "inline-block";
+  sendButton.style.display = "none";
 
   while (i < fullText.length && !shouldStopTyping) {
     if (fullText.slice(i, i + 3) === "```") {
@@ -74,18 +77,20 @@ async function typeMessage(bubble, fullText) {
     bubble.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
     bubble.querySelectorAll("pre").forEach((pre) => addCopyButton(pre));
   } else {
-    bubble.innerHTML += "\n\n⛔ Answer canceld.";
+    bubble.innerHTML += "\n\n⛔ Answer canceled.";
   }
 
   isTyping = false;
   shouldStopTyping = false;
-  updateSendButton("Send");
+  stopButton.style.display = "none";
+  sendButton.style.display = "inline-block";
 }
 
 async function sendMessage() {
   if (isTyping) {
     shouldStopTyping = true;
-    updateSendButton("Send");
+    stopButton.style.display = "none";
+    sendButton.style.display = "inline-block";
     return;
   }
 
@@ -126,21 +131,14 @@ async function sendMessage() {
       localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
       await typeMessage(aiBubble, aiText.trim());
     } else {
-      aiBubble.textContent = "⚠️ API Error: " + (data.error?.message || "Keine Antwort erhalten.");
-      updateSendButton("Send");
+      aiBubble.textContent = "⚠️ API Error: " + (data.error?.message || "No response.");
     }
   } catch (err) {
     aiBubble.classList.remove("typing");
-    aiBubble.textContent =
-      "⚠️ Netzwerkfehler oder ungültiger API-Key: " + (err.message || "Unbekannter Fehler");
-    updateSendButton("Send");
+    aiBubble.textContent = "⚠️ Network or API key error: " + (err.message || "Unknown error");
   }
 
   chatWindow.scrollTop = chatWindow.scrollHeight;
-}
-
-function updateSendButton(label) {
-  sendButton.textContent = label;
 }
 
 chatForm.addEventListener("submit", (e) => {
@@ -155,11 +153,16 @@ userInput.addEventListener("keydown", (e) => {
   }
 });
 
-window.addEventListener("resize", () => {
+window.addEventListener("DOMContentLoaded", () => {
+  chatHistory.forEach((msg) => addMessage(msg.role, msg.content));
   chatWindow.scrollTop = chatWindow.scrollHeight;
 });
 
-window.addEventListener("DOMContentLoaded", () => {
-  chatHistory.forEach((msg) => addMessage(msg.role, msg.content));
+chatWindow.addEventListener("scroll", () => {
+  const nearBottom = chatWindow.scrollTop + chatWindow.clientHeight >= chatWindow.scrollHeight - 50;
+  scrollDownBtn.style.display = nearBottom ? "none" : "block";
+});
+
+scrollDownBtn.addEventListener("click", () => {
   chatWindow.scrollTop = chatWindow.scrollHeight;
 });
