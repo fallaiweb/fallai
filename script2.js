@@ -1,15 +1,15 @@
-// --- Fall AI Web Chat with Groq Cloud API ---
-
 const GROQ_API_KEY = "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";
 const MODEL = "llama3-8b-8192";
 
 let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+let isTyping = false;
+let shouldStopTyping = false;
 
 const chatWindow = document.getElementById("chat-window");
 const chatForm = document.getElementById("chat-form");
 const userInput = document.getElementById("user-input");
+const stopButton = document.getElementById("stop-button");
 
-// === Nachricht hinzufügen ===
 function addMessage(role, content, isTyping = false) {
   const msgDiv = document.createElement("div");
   msgDiv.className = "message " + (role === "user" ? "user" : "ai");
@@ -49,11 +49,13 @@ function addCopyButton(pre) {
   pre.prepend(btn);
 }
 
-// === AI Typing Effekt ===
 async function typeMessage(bubble, fullText) {
   bubble.innerHTML = "";
   let i = 0;
-  while (i < fullText.length) {
+  isTyping = true;
+  stopButton.style.display = "inline-block";
+
+  while (i < fullText.length && !shouldStopTyping) {
     if (fullText.slice(i, i + 3) === "```") {
       const end = fullText.indexOf("```", i + 3);
       if (end !== -1) {
@@ -66,18 +68,29 @@ async function typeMessage(bubble, fullText) {
     chatWindow.scrollTop = chatWindow.scrollHeight;
     await new Promise((res) => setTimeout(res, 8 + Math.random() * 30));
   }
-  bubble.innerHTML = marked.parse(fullText);
-  bubble.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
-  bubble.querySelectorAll("pre").forEach((pre) => addCopyButton(pre));
+
+  if (!shouldStopTyping) {
+    bubble.innerHTML = marked.parse(fullText);
+    bubble.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
+    bubble.querySelectorAll("pre").forEach((pre) => addCopyButton(pre));
+  } else {
+    bubble.innerHTML += "\n\n⛔ Antwort abgebrochen.";
+  }
+
+  isTyping = false;
+  shouldStopTyping = false;
+  stopButton.style.display = "none";
 }
 
-// === Nachricht senden ===
 async function sendMessage() {
+  if (isTyping) return;
+
   const msg = userInput.value.trim();
   if (!msg) return;
 
   addMessage("user", msg);
   userInput.value = "";
+
   const aiBubble = addMessage("ai", "...", true);
 
   chatHistory.push({ role: "user", content: msg });
@@ -122,7 +135,6 @@ async function sendMessage() {
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
-// === Event Listener für Formular ===
 chatForm.addEventListener("submit", (e) => {
   e.preventDefault();
   sendMessage();
@@ -135,18 +147,19 @@ userInput.addEventListener("keydown", (e) => {
   }
 });
 
-// === Scroll bei Resize ===
+stopButton.addEventListener("click", () => {
+  if (isTyping) {
+    shouldStopTyping = true;
+    stopButton.textContent = "⏳ Stoppe...";
+    stopButton.disabled = true;
+  }
+});
+
 window.addEventListener("resize", () => {
   chatWindow.scrollTop = chatWindow.scrollHeight;
 });
 
-// === Chatverlauf anzeigen bei Start ===
 window.addEventListener("DOMContentLoaded", () => {
   chatHistory.forEach((msg) => addMessage(msg.role, msg.content));
   chatWindow.scrollTop = chatWindow.scrollHeight;
 });
-
-// === (Optional) Theme Toggle ===
-// document.getElementById("theme-toggle").addEventListener("click", () => {
-//   document.body.classList.toggle("dark");
-// });
