@@ -2,12 +2,13 @@ const GROQ_API_KEY = "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";
 const MODEL = "llama3-8b-8192";
 
 let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+let aiStopped = false;
 let isTyping = false;
-let shouldStopTyping = false;
 
 const chatWindow = document.getElementById("chat-window");
 const chatForm = document.getElementById("chat-form");
 const userInput = document.getElementById("user-input");
+const sendButton = document.getElementById("send-button");
 const stopButton = document.getElementById("stop-button");
 
 function addMessage(role, content, isTyping = false) {
@@ -37,14 +38,11 @@ function addCopyButton(pre) {
   const btn = document.createElement("button");
   btn.className = "copy-btn";
   btn.textContent = "Copy";
-  btn.title = "Kopiere Code in Zwischenablage";
   btn.onclick = () => {
     const code = pre.querySelector("code");
-    if (code) {
-      navigator.clipboard.writeText(code.textContent);
-      btn.textContent = "Copied!";
-      setTimeout(() => (btn.textContent = "Copy"), 1200);
-    }
+    navigator.clipboard.writeText(code.textContent);
+    btn.textContent = "Copied!";
+    setTimeout(() => (btn.textContent = "Copy"), 1200);
   };
   pre.prepend(btn);
 }
@@ -53,9 +51,10 @@ async function typeMessage(bubble, fullText) {
   bubble.innerHTML = "";
   let i = 0;
   isTyping = true;
-  stopButton.style.display = "inline-block";
+  stopButton.disabled = false;
+  sendButton.disabled = true;
 
-  while (i < fullText.length && !shouldStopTyping) {
+  while (i < fullText.length && !aiStopped) {
     if (fullText.slice(i, i + 3) === "```") {
       const end = fullText.indexOf("```", i + 3);
       if (end !== -1) {
@@ -69,17 +68,14 @@ async function typeMessage(bubble, fullText) {
     await new Promise((res) => setTimeout(res, 8 + Math.random() * 30));
   }
 
-  if (!shouldStopTyping) {
-    bubble.innerHTML = marked.parse(fullText);
-    bubble.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
-    bubble.querySelectorAll("pre").forEach((pre) => addCopyButton(pre));
-  } else {
-    bubble.innerHTML += "\n\n⛔ Antwort abgebrochen.";
-  }
+  bubble.innerHTML = marked.parse(aiStopped ? fullText.slice(0, i) : fullText);
+  bubble.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
+  bubble.querySelectorAll("pre").forEach((pre) => addCopyButton(pre));
 
   isTyping = false;
-  shouldStopTyping = false;
-  stopButton.style.display = "none";
+  aiStopped = false;
+  stopButton.disabled = true;
+  sendButton.disabled = false;
 }
 
 async function sendMessage() {
@@ -92,7 +88,6 @@ async function sendMessage() {
   userInput.value = "";
 
   const aiBubble = addMessage("ai", "...", true);
-
   chatHistory.push({ role: "user", content: msg });
 
   const context = [
@@ -128,8 +123,7 @@ async function sendMessage() {
     }
   } catch (err) {
     aiBubble.classList.remove("typing");
-    aiBubble.textContent =
-      "⚠️ Netzwerkfehler oder ungültiger API-Key: " + (err.message || "Unbekannter Fehler");
+    aiBubble.textContent = "⚠️ Netzwerkfehler oder ungültiger API-Key: " + (err.message || "Unbekannter Fehler");
   }
 
   chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -148,11 +142,7 @@ userInput.addEventListener("keydown", (e) => {
 });
 
 stopButton.addEventListener("click", () => {
-  if (isTyping) {
-    shouldStopTyping = true;
-    stopButton.textContent = "⏳ Stoppe...";
-    stopButton.disabled = true;
-  }
+  aiStopped = true;
 });
 
 window.addEventListener("resize", () => {
