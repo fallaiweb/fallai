@@ -37,7 +37,7 @@ function addCopyButton(pre) {
   const btn = document.createElement("button");
   btn.className = "copy-btn";
   btn.textContent = "Copy";
-  btn.title = "Kopiere Code in Zwischenablage";
+  btn.title = "Copy the code!";
   btn.onclick = () => {
     const code = pre.querySelector("code");
     if (code) {
@@ -53,7 +53,7 @@ async function typeMessage(bubble, fullText) {
   bubble.innerHTML = "";
   let i = 0;
   isTyping = true;
-  updateSendButton("Stop");
+  updateSendButton("🛑");
 
   while (i < fullText.length && !shouldStopTyping) {
     if (fullText.slice(i, i + 3) === "```") {
