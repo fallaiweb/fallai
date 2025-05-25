@@ -2,13 +2,13 @@ const GROQ_API_KEY = "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";
 const MODEL = "llama3-8b-8192";
 
 let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
-let abortController = null;
+let isTyping = false;
+let shouldStopTyping = false;
 
 const chatWindow = document.getElementById("chat-window");
 const chatForm = document.getElementById("chat-form");
 const userInput = document.getElementById("user-input");
-const sendBtn = document.getElementById("send-btn");
-const stopBtn = document.getElementById("stop-btn");
+const stopButton = document.getElementById("stop-button");
 
 function addMessage(role, content, isTyping = false) {
   const msgDiv = document.createElement("div");
@@ -37,6 +37,7 @@ function addCopyButton(pre) {
   const btn = document.createElement("button");
   btn.className = "copy-btn";
   btn.textContent = "Copy";
+  btn.title = "Kopiere Code in Zwischenablage";
   btn.onclick = () => {
     const code = pre.querySelector("code");
     if (code) {
@@ -51,25 +52,45 @@ function addCopyButton(pre) {
 async function typeMessage(bubble, fullText) {
   bubble.innerHTML = "";
   let i = 0;
-  while (i < fullText.length) {
-    if (!abortController) break;
+  isTyping = true;
+  stopButton.style.display = "inline-block";
+
+  while (i < fullText.length && !shouldStopTyping) {
+    if (fullText.slice(i, i + 3) === "```") {
+      const end = fullText.indexOf("```", i + 3);
+      if (end !== -1) {
+        bubble.innerHTML += marked.parse(fullText.slice(i, end + 3));
+        i = end + 3;
+        continue;
+      }
+    }
     bubble.innerHTML += fullText[i++];
     chatWindow.scrollTop = chatWindow.scrollHeight;
     await new Promise((res) => setTimeout(res, 8 + Math.random() * 30));
   }
-  bubble.innerHTML = marked.parse(fullText);
-  bubble.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
-  bubble.querySelectorAll("pre").forEach((pre) => addCopyButton(pre));
-  sendBtn.style.display = "inline-block";
-  stopBtn.style.display = "none";
+
+  if (!shouldStopTyping) {
+    bubble.innerHTML = marked.parse(fullText);
+    bubble.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
+    bubble.querySelectorAll("pre").forEach((pre) => addCopyButton(pre));
+  } else {
+    bubble.innerHTML += "\n\n⛔ Antwort abgebrochen.";
+  }
+
+  isTyping = false;
+  shouldStopTyping = false;
+  stopButton.style.display = "none";
 }
 
 async function sendMessage() {
+  if (isTyping) return;
+
   const msg = userInput.value.trim();
-  if (!msg || abortController) return;
+  if (!msg) return;
 
   addMessage("user", msg);
   userInput.value = "";
+
   const aiBubble = addMessage("ai", "...", true);
 
   chatHistory.push({ role: "user", content: msg });
@@ -83,10 +104,6 @@ async function sendMessage() {
     ...chatHistory.slice(-6),
   ];
 
-  abortController = new AbortController();
-  sendBtn.style.display = "none";
-  stopBtn.style.display = "inline-block";
-
   try {
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -95,7 +112,6 @@ async function sendMessage() {
         Authorization: "Bearer " + GROQ_API_KEY,
       },
       body: JSON.stringify({ model: MODEL, messages: context }),
-      signal: abortController.signal,
     });
 
     const data = await res.json();
@@ -112,12 +128,11 @@ async function sendMessage() {
     }
   } catch (err) {
     aiBubble.classList.remove("typing");
-    aiBubble.textContent = "⛔ Stopp gedrückt oder Fehler: " + (err.message || "Unbekannter Fehler");
+    aiBubble.textContent =
+      "⚠️ Netzwerkfehler oder ungültiger API-Key: " + (err.message || "Unbekannter Fehler");
   }
 
-  abortController = null;
-  sendBtn.style.display = "inline-block";
-  stopBtn.style.display = "none";
+  chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
 chatForm.addEventListener("submit", (e) => {
@@ -132,12 +147,11 @@ userInput.addEventListener("keydown", (e) => {
   }
 });
 
-stopBtn.addEventListener("click", () => {
-  if (abortController) {
-    abortController.abort();
-    abortController = null;
-    sendBtn.style.display = "inline-block";
-    stopBtn.style.display = "none";
+stopButton.addEventListener("click", () => {
+  if (isTyping) {
+    shouldStopTyping = true;
+    stopButton.textContent = "⏳ Stoppe...";
+    stopButton.disabled = true;
   }
 });
 
