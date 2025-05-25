@@ -1,76 +1,39 @@
-/* Grundlayout */
 body {
   margin: 0;
-  font-family: "Segoe UI", sans-serif;
-  background-color: #1e1e1e;
-  color: #ffffff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f3f4f6;
+  color: #333;
 }
 
 main {
-  width: 100%;
-  max-width: 900px;
+  max-width: 800px;
+  margin: 0 auto;
   padding: 1rem;
 }
 
-.chat-section {
-  background-color: #2c2c2c;
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+header h1 {
+  text-align: center;
+  margin-bottom: 0.5rem;
 }
 
-/* Header */
-.chat-header {
-  padding: 1rem;
-  background-color: #3a3a3a;
-  border-bottom: 1px solid #444;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+header p {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666;
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.header-left .avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-}
-
-.chat-header h1 {
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.title {
-  color: #ffffff;
-}
-
-.emoji {
-  font-size: 1.5rem;
-}
-
-/* Chatfenster */
-.chat-window {
+#chat-window {
   max-height: 70vh;
   overflow-y: auto;
   padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  background-color: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 }
 
-/* Nachrichten */
 .message {
   display: flex;
+  margin-bottom: 1rem;
 }
 
 .message.user {
@@ -82,136 +45,103 @@ main {
 }
 
 .bubble {
+  padding: 0.8rem 1.2rem;
+  border-radius: 1.2rem;
   max-width: 80%;
-  padding: 1rem;
-  border-radius: 1rem;
-  line-height: 1.4;
-  font-size: 1rem;
-  white-space: pre-wrap;
   word-wrap: break-word;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  position: relative;
 }
 
 .bubble[data-role="user"] {
-  background-color: #007aff;
-  color: #ffffff;
+  background-color: #007bff;
+  color: white;
   border-bottom-right-radius: 0;
 }
 
 .bubble[data-role="assistant"] {
-  background-color: #444;
-  color: #ffffff;
+  background-color: #e4e6eb;
+  color: #000;
   border-bottom-left-radius: 0;
 }
 
-.typing {
-  opacity: 0.6;
-  font-style: italic;
-}
-
-/* Formular */
 form {
   display: flex;
-  flex-direction: column;
   gap: 0.5rem;
-  padding: 1rem;
-  background-color: #3a3a3a;
-  border-top: 1px solid #444;
+  margin-top: 1rem;
 }
 
-textarea {
-  resize: none;
-  border: none;
-  border-radius: 0.75rem;
-  padding: 1rem;
+form textarea {
+  flex: 1;
+  padding: 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 1rem;
   font-size: 1rem;
-  height: 4rem;
-  background-color: #2c2c2c;
-  color: #ffffff;
-  outline: none;
+  resize: none;
+  height: 3rem;
 }
 
-/* Buttons */
-.button-group {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-}
-
-#send-button,
-#stop-button {
-  flex: 0 0 auto;
-  background-color: #007aff;
+form button {
+  background: #FFA500;
   color: white;
   border: none;
-  border-radius: 0.75rem;
-  padding: 0.8rem 1.5rem;
+  border-radius: 999px;
+  padding: 0.8rem 1.6rem;
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0, 122, 255, 0.3);
+  transition: background 0.2s;
+  box-shadow: 0 2px 8px #ffa50044;
 }
 
-#send-button:hover {
-  background-color: #005bb5;
+form button:hover {
+  background: #ffb733;
 }
 
-#stop-button {
-  background-color: #ff3b30;
-  box-shadow: 0 2px 6px rgba(255, 59, 48, 0.3);
+.copy-btn {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.6rem;
+  background: #ddd;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-#stop-button:hover {
-  background-color: #d32f2f;
+.copy-btn:hover {
+  background: #ccc;
 }
 
-/* Fußbereich */
+pre {
+  position: relative;
+  padding: 1rem;
+  background: #1e1e1e;
+  color: white;
+  border-radius: 0.8rem;
+  overflow-x: auto;
+  margin-top: 0.5rem;
+}
+
+code {
+  font-family: "Fira Code", monospace;
+  font-size: 0.95rem;
+}
+
 .footer-link {
   text-align: center;
-  padding: 0.5rem;
-  background-color: #2c2c2c;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  margin-top: 1rem;
 }
 
 .footer-link a {
-  color: #bbb;
+  color: #666;
   text-decoration: none;
 }
 
 .footer-link a:hover {
   text-decoration: underline;
-}
-
-/* Code-Highlighting */
-pre {
-  position: relative;
-  padding: 1rem;
-  border-radius: 0.75rem;
-  background-color: #1e1e1e;
-  overflow-x: auto;
-  margin: 1rem 0;
-}
-
-pre code {
-  font-family: Consolas, monospace;
-  color: #ddd;
-}
-
-/* Copy Button für Codeblöcke */
-.copy-btn {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background-color: #444;
-  color: white;
-  border: none;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.8rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.copy-btn:hover {
-  background-color: #666;
 }
