@@ -74,7 +74,7 @@ async function typeMessage(bubble, fullText) {
     bubble.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
     bubble.querySelectorAll("pre").forEach((pre) => addCopyButton(pre));
   } else {
-    bubble.innerHTML += "\n\n⛔ Antwort abgebrochen.";
+    bubble.innerHTML += "\n\n⛔ Answer canceld.";
   }
 
   isTyping = false;
