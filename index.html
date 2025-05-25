@@ -1,30 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>🍂 Fall AI Web Chat</title>
-  <link rel="stylesheet" href="style2.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <link rel="stylesheet" href="style2.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 </head>
 <body>
   <main>
     <section class="chat-section" id="chat-section">
       <div class="chat-header">
         <div class="header-left">
-          <img src="https://cdn.discordapp.com/avatars/1376180153654448180/8480b484883b0cf5f0db39ee90405fd7.webp?size=1024" class="avatar" alt="Fall AI" />
+          <img src="https://cdn.discordapp.com/avatars/1376180153654448180/8480b484883b0cf5f0db39ee90405fd7.webp?size=1024" class="avatar" alt="Fall AI">
           <h1><span class="emoji">🍂</span> <span class="title">Fall AI Web Chat</span></h1>
+        </div>
+        <div class="header-right">
+          <button id="stop-button" style="display: none;">⛔ Stop</button>
         </div>
       </div>
       <div class="chat-window" id="chat-window"></div>
       <form id="chat-form" autocomplete="off">
-        <textarea id="user-input" placeholder="Type your message..." required></textarea>
-        <button type="submit" id="send-button">Send</button>
-        <button type="button" id="stop-button" style="display: none;">Stop</button>
+        <textarea id="user-input" placeholder="Type your message..." autocomplete="off" required></textarea>
+        <button type="submit">Send</button>
       </form>
       <div class="footer-link">
         <a href="https://fallai.neocities.org" target="_blank">🍂 Fall AI ~ https://fallai.neocities.org 🍂</a>
       </div>
+      <div class="note"></div>
     </section>
   </main>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
