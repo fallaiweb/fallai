@@ -8,7 +8,7 @@ let shouldStopTyping = false;
 const chatWindow = document.getElementById("chat-window");
 const chatForm = document.getElementById("chat-form");
 const userInput = document.getElementById("user-input");
-const stopButton = document.getElementById("stop-button");
+const sendButton = document.getElementById("send-button");
 
 function addMessage(role, content, isTyping = false) {
   const msgDiv = document.createElement("div");
@@ -53,7 +53,7 @@ async function typeMessage(bubble, fullText) {
   bubble.innerHTML = "";
   let i = 0;
   isTyping = true;
-  stopButton.style.display = "inline-block";
+  updateSendButton("Stop");
 
   while (i < fullText.length && !shouldStopTyping) {
     if (fullText.slice(i, i + 3) === "```") {
@@ -79,11 +79,15 @@ async function typeMessage(bubble, fullText) {
 
   isTyping = false;
   shouldStopTyping = false;
-  stopButton.style.display = "none";
+  updateSendButton("Send");
 }
 
 async function sendMessage() {
-  if (isTyping) return;
+  if (isTyping) {
+    shouldStopTyping = true;
+    updateSendButton("Send");
+    return;
+  }
 
   const msg = userInput.value.trim();
   if (!msg) return;
@@ -92,14 +96,12 @@ async function sendMessage() {
   userInput.value = "";
 
   const aiBubble = addMessage("ai", "...", true);
-
   chatHistory.push({ role: "user", content: msg });
 
   const context = [
     {
       role: "system",
-      content:
-        "You are Fall AI, a helpful and friendly assistant for the web. Format code as Markdown. Keep answers concise and helpful.",
+      content: "You are Fall AI, a helpful and friendly assistant for the web. Format code as Markdown. Keep answers concise and helpful.",
     },
     ...chatHistory.slice(-6),
   ];
@@ -125,14 +127,20 @@ async function sendMessage() {
       await typeMessage(aiBubble, aiText.trim());
     } else {
       aiBubble.textContent = "⚠️ API Error: " + (data.error?.message || "Keine Antwort erhalten.");
+      updateSendButton("Send");
     }
   } catch (err) {
     aiBubble.classList.remove("typing");
     aiBubble.textContent =
       "⚠️ Netzwerkfehler oder ungültiger API-Key: " + (err.message || "Unbekannter Fehler");
+    updateSendButton("Send");
   }
 
   chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+function updateSendButton(label) {
+  sendButton.textContent = label;
 }
 
 chatForm.addEventListener("submit", (e) => {
@@ -144,14 +152,6 @@ userInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     sendMessage();
-  }
-});
-
-stopButton.addEventListener("click", () => {
-  if (isTyping) {
-    shouldStopTyping = true;
-    stopButton.textContent = "⏳ Stoppe...";
-    stopButton.disabled = true;
   }
 });
 
