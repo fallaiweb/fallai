@@ -1,37 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fall AI</title>
-  <link rel="stylesheet" href="style2.css" />
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
   <div class="app">
     <header>
       <h1>Fall AI</h1>
       <div class="user-info">
-        <span id="username">Guest</span>
-        <button id="login-btn" title="Login">Login</button>
-        <button id="logout-btn" title="Logout" style="display:none;">Logout</button>
+        <span id="username">Gast</span>
+        <button id="login-btn"><i data-lucide="user"></i> Login</button>
+        <button id="logout-btn" style="display:none;"><i data-lucide="log-out"></i></button>
       </div>
-      <!-- Login Modal -->
       <div id="login-modal" class="login-modal">
         <div class="login-modal-content">
           <span class="login-modal-title">Login mit</span>
-          <button id="login-discord" class="login-provider-btn">
-            <img src="https://img.icons8.com/ios-filled/50/7289DA/discord-logo.png" alt="Discord"/> Discord
+          <button id="login-google">
+            <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google"> Google
           </button>
-          <button id="login-cancel" class="login-cancel-btn">Abbrechen</button>
+          <button id="login-discord">
+            <img src="https://img.icons8.com/ios-filled/50/7289DA/discord-logo.png" alt="Discord"> Discord
+          </button>
+          <button id="login-cancel">Abbrechen</button>
         </div>
       </div>
     </header>
+
     <main id="chat" class="chat-area"></main>
+    
+    <div class="scroll-to-bottom" id="scroll-btn">
+      <i data-lucide="arrow-down-circle"></i>
+    </div>
+
     <footer>
-      <textarea id="user-input" rows="1" placeholder="Type your message..."></textarea>
-      <button id="send-btn" title="Send">Send</button>
+      <textarea id="user-input" placeholder="Nachricht schreiben..." rows="1"></textarea>
+      <button id="send-btn"><i data-lucide="send"></i></button>
+      <button id="stop-btn" style="display:none;"><i data-lucide="square"></i></button>
     </footer>
   </div>
-  <script src="script2.js" defer></script>
+  <script src="script.js"></script>
 </body>
 </html>
