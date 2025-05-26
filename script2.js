@@ -27,62 +27,54 @@ const confirmNo = document.getElementById("confirm-no");
 
 let abortController = null;
 let typingEl = null;
-let pendingFiles = []; // {file, filename}
+let pendingFiles = [];
 
-async function logToDiscord(action, description, user = null) {
+function logToDiscord(action, description, user = null) {
   const embed = {
     title: action,
     description: description,
     color: 0xe7a96f,
     timestamp: new Date().toISOString(),
-    ...(user && {
-      author: {
-        name: user.name,
-        icon_url: user.avatar
-      }
-    })
+    ...(user && { author: { name: user.name, icon_url: user.avatar } }),
   };
-  try {
-    await fetch(DISCORD_WEBHOOK, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ embeds: [embed] })
-    });
-  } catch (e) {}
+  fetch(DISCORD_WEBHOOK, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ embeds: [embed] }),
+  }).catch(() => {});
 }
 
-// ==== Login Modal Handling ====
+// Login modal handling
 loginBtn.addEventListener("click", () => loginModal.classList.add("active"));
 loginCancelBtn.addEventListener("click", () => loginModal.classList.remove("active"));
 loginModal.addEventListener("click", (e) => {
   if (e.target === loginModal) loginModal.classList.remove("active");
 });
 
-// ==== Google OAuth2 Implicit Flow ====
+// OAuth flows (Google & Discord)
 loginGoogleBtn.addEventListener("click", () => {
   loginModal.classList.remove("active");
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: REDIRECT_URI,
     response_type: "token",
-    scope: "openid profile email"
+    scope: "openid profile email",
   });
   window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 });
 
-// ==== Discord OAuth2 Implicit Flow ====
 loginDiscordBtn.addEventListener("click", () => {
   loginModal.classList.remove("active");
   const params = new URLSearchParams({
     client_id: DISCORD_CLIENT_ID,
     redirect_uri: REDIRECT_URI,
     response_type: "token",
-    scope: "identify email"
+    scope: "identify email",
   });
   window.location.href = `https://discord.com/api/oauth2/authorize?${params.toString()}`;
 });
 
-// ==== Logout ====
+// Logout
 logoutBtn.addEventListener("click", () => {
   const user = JSON.parse(localStorage.getItem("user_data"));
   logToDiscord("Logout", "User logged out.", user);
@@ -94,7 +86,7 @@ logoutBtn.addEventListener("click", () => {
   clearChatUI();
 });
 
-// ==== Chat Clear Modal ====
+// Clear chat with confirmation modal
 clearBtn.addEventListener("click", () => {
   confirmModal.classList.add("active");
   lucide.createIcons({ icons: ["alert-triangle"] });
@@ -115,44 +107,40 @@ confirmModal.addEventListener("click", (e) => {
   if (e.target === confirmModal) confirmModal.classList.remove("active");
 });
 
-// ==== Token from URL and fetch user data ====
+// OAuth token handling
 function handleOAuthRedirect() {
   if (window.location.hash) {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const accessToken = hashParams.get("access_token");
     if (accessToken) {
-      // Try Discord first
       fetch("https://discord.com/api/users/@me", {
-        headers: { Authorization: `Bearer ${accessToken}` }
+        headers: { Authorization: `Bearer ${accessToken}` },
       })
-        .then(res => res.ok ? res.json() : Promise.reject())
-        .then(user => {
+        .then((res) => (res.ok ? res.json() : Promise.reject()))
+        .then((user) => {
           saveUser({
             id: user.id,
             name: `${user.username}#${user.discriminator}`,
             avatar: user.avatar
               ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
               : "https://cdn.discordapp.com/embed/avatars/0.png",
-            provider: "discord"
+            provider: "discord",
           });
         })
         .catch(() => {
-          // Try Google
           fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-            headers: { Authorization: `Bearer ${accessToken}` }
+            headers: { Authorization: `Bearer ${accessToken}` },
           })
-            .then(res => res.json())
-            .then(user => {
+            .then((res) => res.json())
+            .then((user) => {
               saveUser({
                 id: user.sub || user.email || user.name,
                 name: user.name,
                 avatar: user.picture,
-                provider: "google"
+                provider: "google",
               });
             })
-            .catch(() => {
-              alert("Login failed.");
-            });
+            .catch(() => alert("Login failed."));
         });
       window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -185,18 +173,18 @@ function saveChatHistory() {
   const key = getChatStorageKey();
   if (!key) return;
   const messages = [];
-  document.querySelectorAll("#chat .message, #chat .file-block").forEach(msg => {
+  document.querySelectorAll("#chat .message, #chat .file-block").forEach((msg) => {
     if (msg.classList.contains("file-block")) {
       messages.push({
         role: msg.dataset.role,
         file: true,
         filename: msg.dataset.filename,
-        content: msg.dataset.content
+        content: msg.dataset.content,
       });
     } else {
       messages.push({
         role: msg.classList.contains("user") ? "user" : "bot",
-        content: msg.textContent
+        content: msg.textContent,
       });
     }
   });
@@ -230,15 +218,15 @@ function updateUIForUser(user) {
   loadChatHistory();
 }
 
-// ==== File Upload Preview ====
+// File upload preview
 fileBtn.addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", () => {
   pendingFiles = [];
   filePreview.innerHTML = "";
   const files = Array.from(fileInput.files);
   for (const file of files) {
-    pendingFiles.push({file, filename: file.name});
-    addFilePreview(file.name, pendingFiles.length-1);
+    pendingFiles.push({ file, filename: file.name });
+    addFilePreview(file.name, pendingFiles.length - 1);
   }
   lucide.createIcons({ icons: ["file-text", "x"] });
 });
@@ -258,7 +246,7 @@ function removePendingFile(idx) {
   if (pendingFiles.length === 0) fileInput.value = "";
 }
 
-// ==== Chat Functions ====
+// Chat functions
 sendBtn.addEventListener("click", handleSend);
 stopBtn.addEventListener("click", handleStop);
 
@@ -273,7 +261,7 @@ userInput.addEventListener("input", autoResizeTextarea);
 
 function autoResizeTextarea() {
   userInput.style.height = "auto";
-  const maxHeight = 140; // ~5 lines
+  const maxHeight = 140;
   if (userInput.scrollHeight > maxHeight) {
     userInput.style.height = maxHeight + "px";
     userInput.style.overflowY = "auto";
@@ -284,8 +272,14 @@ function autoResizeTextarea() {
 }
 autoResizeTextarea();
 
+function isCodeBlock(text) {
+  return /^``````$/.test(text.trim());
+}
+function getCodeContent(text) {
+  return text.trim().replace(/^``````$/, '');
+}
+
 function handleSend() {
-  // 1. Sende ggf. Dateien
   if (pendingFiles.length > 0) {
     for (const pf of pendingFiles) {
       appendFileBlock("user", pf.filename, "", true);
@@ -300,15 +294,14 @@ function handleSend() {
     saveChatHistory();
     return;
   }
-  // 2. Sende normalen Text oder langen Text als Datei
   const message = userInput.value.trim();
   if (!message) return;
-  if (message.length > 150) {
-    appendFileBlock("user", "Text.txt", message, true);
+  if (isCodeBlock(message)) {
+    appendFileBlock("user", "Fall.ai", getCodeContent(message), true);
     userInput.value = "";
     autoResizeTextarea();
     const user = JSON.parse(localStorage.getItem("user_data"));
-    logToDiscord("File (Text)", `User sent a long text as file: **Text.txt**\n\`\`\`\n${message.slice(0, 1000)}\n\`\`\``, user);
+    logToDiscord("Code Block", `User sent code:\n\`\`\`\n${getCodeContent(message).slice(0, 1000)}\n\`\`\``, user);
     toggleButtons(false);
     saveChatHistory();
     return;
@@ -386,7 +379,7 @@ function appendFileBlock(role, filename, content, log = true) {
   }
 }
 
-// ==== AI ====
+// AI streaming response
 function showThinking() {
   if (typingEl) typingEl.remove();
   typingEl = document.createElement("div");
@@ -434,7 +427,7 @@ async function sendToAI(message) {
       done = streamDone;
       if (value) {
         const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n").filter(line => line.trim() !== "");
+        const lines = chunk.split("\n").filter((line) => line.trim() !== "");
         for (const line of lines) {
           if (line.startsWith("data:")) {
             const data = line.replace("data: ", "");
@@ -453,9 +446,9 @@ async function sendToAI(message) {
     }
 
     if (typingEl) typingEl.remove();
-    // AI-Antwort als Datei, falls zu lang!
-    if (botMsg.length > 150) {
-      appendFileBlock("bot", "Text.txt", botMsg, true);
+
+    if (isCodeBlock(botMsg)) {
+      appendFileBlock("bot", "Fall.ai", getCodeContent(botMsg), true);
     } else {
       appendMessage("bot", botMsg, true);
     }
@@ -476,7 +469,7 @@ function toggleButtons(loading) {
   stopBtn.style.display = loading ? "inline-flex" : "none";
 }
 
-// Scroll Button
+// Scroll to bottom button
 scrollBtn.addEventListener("click", () => {
   chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" });
 });
@@ -485,10 +478,10 @@ chat.addEventListener("scroll", () => {
     chat.scrollTop + chat.clientHeight < chat.scrollHeight - 100 ? "flex" : "none";
 });
 
-// Init Lucide Icons
+// Initialize lucide icons
 lucide.createIcons();
 
-// Run on load
+// On load
 window.addEventListener("load", () => {
   handleOAuthRedirect();
 });
