@@ -1,11 +1,11 @@
 // === Firebase Config ===
 const firebaseConfig = {
-  apiKey: "AIzaSyAPf_EoIxzFhArc83GBaIy7h--2Kye0T3E",
-  authDomain: "fallai-e4e92.firebaseapp.com",
-  projectId: "fallai-e4e92",
-  storageBucket: "fallai-e4e92.firebasestorage.app",
-  messagingSenderId: "1015085978833",
-  appId: "1:1015085978833:web:3a51e6320a94c80bbc21f0"
+  apiKey: "YOUR_FIREBASE_API_KEY",
+  authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
+  projectId: "YOUR_FIREBASE_PROJECT_ID",
+  storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_FIREBASE_MESSAGING_SENDER_ID",
+  appId: "YOUR_FIREBASE_APP_ID"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -21,31 +21,28 @@ const chat = document.getElementById('chat');
 const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 const stopBtn = document.getElementById('stop-btn');
-const loginBtn = document.getElementById('login-btn');
+const googleLoginBtn = document.getElementById('google-login-btn');
+const discordLoginBtn = document.getElementById('discord-login-btn');
 const logoutBtn = document.getElementById('logout-btn');
 const usernameSpan = document.getElementById('username');
 const resetBtn = document.getElementById('reset-chat-btn');
-const scrollBtn = document.getElementById('scroll-down-btn');
+const scrollDownBtn = document.getElementById('scroll-down-btn');
+const chatContainer = document.getElementById('chat-container');
 
 // === Event Listeners ===
 sendBtn.addEventListener('click', handleSend);
 stopBtn.addEventListener('click', handleStop);
-loginBtn.addEventListener('click', handleGoogleLogin);
+googleLoginBtn.addEventListener('click', handleGoogleLogin);
+discordLoginBtn.addEventListener('click', handleDiscordLogin);
 logoutBtn.addEventListener('click', handleLogout);
 resetBtn.addEventListener('click', resetChat);
-scrollBtn.addEventListener('click', scrollToBottom);
-
-chat.addEventListener('scroll', () => {
-  if (chat.scrollTop + chat.clientHeight < chat.scrollHeight - 50) {
-    scrollBtn.style.display = 'block';
-  } else {
-    scrollBtn.style.display = 'none';
-  }
+scrollDownBtn.addEventListener('click', () => {
+  chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
 });
-
-function scrollToBottom() {
-  chat.scrollTo({ top: chat.scrollHeight, behavior: 'smooth' });
-}
+chatContainer.addEventListener('scroll', () => {
+  const nearBottom = chatContainer.scrollHeight - chatContainer.scrollTop <= chatContainer.clientHeight + 100;
+  scrollDownBtn.style.display = nearBottom ? 'none' : 'block';
+});
 
 // === Google Login ===
 function handleGoogleLogin() {
@@ -54,32 +51,37 @@ function handleGoogleLogin() {
     user = result.user;
     currentUserId = user.uid;
     usernameSpan.textContent = user.displayName;
-    loginBtn.style.display = 'none';
+    googleLoginBtn.style.display = 'none';
+    discordLoginBtn.style.display = 'none';
     logoutBtn.style.display = 'inline-block';
     loadChat();
   });
 }
 
-// === Discord Login (via OAuth2 redirect) ===
+// === Discord Login ===
 function handleDiscordLogin() {
-  const redirectUri = encodeURIComponent(window.location.href);
-  const clientId = "1376180153654448180";
-  const scope = "identify email";
-  const discordUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
-  window.location.href = discordUrl;
+  const clientId = "YOUR_DISCORD_CLIENT_ID";
+  const redirectUri = encodeURIComponent("YOUR_REDIRECT_URI");
+  const scope = encodeURIComponent("identify");
+  const responseType = "token";
+  const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}`;
+  window.location.href = discordAuthUrl;
 }
 
+// === Logout ===
 function handleLogout() {
   auth.signOut().then(() => {
     user = { displayName: "Guest" };
     currentUserId = null;
     usernameSpan.textContent = "Guest";
-    loginBtn.style.display = 'inline-block';
+    googleLoginBtn.style.display = 'inline-block';
+    discordLoginBtn.style.display = 'inline-block';
     logoutBtn.style.display = 'none';
     clearChatUI();
   });
 }
 
+// === Send Message ===
 function handleSend() {
   const message = userInput.value.trim();
   if (!message) return;
@@ -93,7 +95,7 @@ function handleSend() {
   fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
-      "Authorization": "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",
+      "Authorization": "Bearer YOUR_GROQ_API_KEY",
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
@@ -117,7 +119,6 @@ function handleSend() {
         toggleButtons(false);
         saveChat({ role: "user", content: message });
         saveChat({ role: "bot", content: botMsg });
-        typingEl = null;
         return;
       }
       const chunk = decoder.decode(value, { stream: true });
@@ -137,88 +138,6 @@ function handleSend() {
         }
       }
       return read();
-    });
-
-    return read();
-  })
-  .catch(error => {
-    if (error.name === "AbortError") {
-      appendMessage("bot", "(Answer cancelled)");
-    } else {
-      appendMessage("bot", "An error has occurred.");
-    }
-    toggleButtons(false);
-  });
-}
-
-function handleStop() {
-  if (abortController) {
-    abortController.abort();
-  }
-}
-
-function appendMessage(role, content) {
-  const msg = document.createElement("div");
-  msg.className = role;
-  msg.textContent = content;
-  chat.appendChild(msg);
-  chat.scrollTop = chat.scrollHeight;
-}
-
-let typingEl = null;
-function updateBotTyping(text) {
-  if (!typingEl) {
-    typingEl = document.createElement("div");
-    typingEl.className = "bot";
-    chat.appendChild(typingEl);
-  }
-  typingEl.textContent = text;
-  chat.scrollTop = chat.scrollHeight;
-}
-
-function toggleButtons(loading) {
-  sendBtn.style.display = loading ? "none" : "inline-block";
-  stopBtn.style.display = loading ? "inline-block" : "none";
-}
-
-function saveChat(msg) {
-  if (!currentUserId) return;
-  db.collection("chats").doc(currentUserId).collection("messages").add({
-    role: msg.role,
-    content: msg.content,
-    timestamp: Date.now()
-  });
-}
-
-function loadChat() {
-  if (!currentUserId) return;
-  clearChatUI();
-  db.collection("chats")
-    .doc(currentUserId)
-    .collection("messages")
-    .orderBy("timestamp")
-    .get()
-    .then(snapshot => {
-      snapshot.forEach(doc => {
-        const msg = doc.data();
-        appendMessage(msg.role, msg.content);
-      });
-    });
-}
-
-function clearChatUI() {
-  chat.innerHTML = "";
-}
-
-function resetChat() {
-  if (!currentUserId) {
-    clearChatUI();
-    return;
-  }
-  const messagesRef = db.collection("chats").doc(currentUserId).collection("messages");
-  messagesRef.get().then(snapshot => {
-    const batch = db.batch();
-    snapshot.forEach(doc => batch.delete(doc.ref));
-    batch.commit().then(() => clearChatUI());
-  });
-}
+   
+::contentReference[oaicite:24]{index=24}
+ 
