@@ -263,6 +263,29 @@ header h1 {
   background: #2e2e2e;
 }
 
+/* Markdown support */
+.message strong, .file-content strong { font-weight: bold; }
+.message em, .file-content em { font-style: italic; }
+.message code, .file-content code {
+  background: #181818;
+  color: #e7a96f;
+  border-radius: 3px;
+  padding: 2px 5px;
+  font-family: "Fira Mono", "Consolas", monospace;
+}
+.message a, .file-content a { color: #e7a96f; text-decoration: underline; }
+pre, .file-content pre {
+  background: #181818;
+  color: #eee;
+  border-radius: 5px;
+  padding: 0.5em 0.7em;
+  font-family: "Fira Mono", "Consolas", monospace;
+  font-size: 0.97em;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  margin-bottom: 0.2em;
+}
+
 /* Login Modal */
 .login-modal {
   display: none;
