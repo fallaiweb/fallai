@@ -367,7 +367,7 @@ pre, .file-content pre {
 }
 .chat-area::-webkit-scrollbar-thumb {
   background: var(--chat-scrollbar);
-  border-radius: 7px;
+  border-radius: 3px;
 }
 .chat-area::-webkit-scrollbar-track {
   background: transparent;
