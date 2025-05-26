@@ -1,10 +1,9 @@
-// ==== CONFIGURATION ====
 const GROQ_API_KEY = "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";
 const DISCORD_CLIENT_ID = "1376180153654448180";
 const GOOGLE_CLIENT_ID = "430741103805-r80p5k14p9e66srupo4jvdle4pen1fqb.apps.googleusercontent.com";
 const REDIRECT_URI = "https://fallai.netlify.app";
+const DISCORD_WEBHOOK = "https://ptb.discord.com/api/webhooks/1376582619294208122/No5f6xr5L6e4c3ZFNL6YbIoP7MnSFw6X_0YBG7s7jjeej6Mhlu-yd2gPJ_tmUFu2tIF2";
 
-// ==== UI Elements ====
 const chat = document.getElementById("chat");
 const userInput = document.getElementById("user-input");
 const sendBtn = document.getElementById("send-btn");
@@ -18,9 +17,35 @@ const loginModal = document.getElementById("login-modal");
 const loginGoogleBtn = document.getElementById("login-google");
 const loginDiscordBtn = document.getElementById("login-discord");
 const loginCancelBtn = document.getElementById("login-cancel");
+const fileBtn = document.getElementById("file-btn");
+const fileInput = document.getElementById("file-input");
+const clearBtn = document.getElementById("clear-btn");
 
 let abortController = null;
 let typingEl = null;
+
+// --- Discord Webhook Logging ---
+async function logToDiscord(action, description, user = null) {
+  const embed = {
+    title: action,
+    description: description,
+    color: 0xe7a96f,
+    timestamp: new Date().toISOString(),
+    ...(user && {
+      author: {
+        name: user.name,
+        icon_url: user.avatar
+      }
+    })
+  };
+  try {
+    await fetch(DISCORD_WEBHOOK, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ embeds: [embed] })
+    });
+  } catch (e) {}
+}
 
 // ==== Login Modal Handling ====
 loginBtn.addEventListener("click", () => loginModal.classList.add("active"));
@@ -55,12 +80,25 @@ loginDiscordBtn.addEventListener("click", () => {
 
 // ==== Logout ====
 logoutBtn.addEventListener("click", () => {
+  const user = JSON.parse(localStorage.getItem("user_data"));
+  logToDiscord("Logout", "User logged out.", user);
   localStorage.removeItem("user_data");
   usernameSpan.textContent = "Guest";
   userAvatar.style.display = "none";
   loginBtn.style.display = "inline-flex";
   logoutBtn.style.display = "none";
   clearChatUI();
+});
+
+// ==== Chat Clear ====
+clearBtn.addEventListener("click", () => {
+  if (confirm("Do you really want to delete your chat history? This cannot be undone.")) {
+    const key = getChatStorageKey();
+    if (key) localStorage.removeItem(key);
+    clearChatUI();
+    const user = JSON.parse(localStorage.getItem("user_data"));
+    logToDiscord("Chat Cleared", "User cleared their chat history.", user);
+  }
 });
 
 // ==== Token from URL and fetch user data ====
@@ -113,6 +151,7 @@ function handleOAuthRedirect() {
 function saveUser(user) {
   localStorage.setItem("user_data", JSON.stringify(user));
   updateUIForUser(user);
+  logToDiscord("Login", `User logged in via ${user.provider}.`, user);
 }
 
 function getUserId() {
@@ -132,11 +171,20 @@ function saveChatHistory() {
   const key = getChatStorageKey();
   if (!key) return;
   const messages = [];
-  document.querySelectorAll("#chat .message").forEach(msg => {
-    messages.push({
-      role: msg.classList.contains("user") ? "user" : "bot",
-      content: msg.textContent
-    });
+  document.querySelectorAll("#chat .message, #chat .file-block").forEach(msg => {
+    if (msg.classList.contains("file-block")) {
+      messages.push({
+        role: msg.dataset.role,
+        file: true,
+        filename: msg.dataset.filename,
+        content: msg.dataset.content
+      });
+    } else {
+      messages.push({
+        role: msg.classList.contains("user") ? "user" : "bot",
+        content: msg.textContent
+      });
+    }
   });
   localStorage.setItem(key, JSON.stringify(messages));
 }
@@ -147,7 +195,11 @@ function loadChatHistory() {
   const messages = JSON.parse(localStorage.getItem(key) || "[]");
   clearChatUI();
   for (const msg of messages) {
-    appendMessage(msg.role, msg.content);
+    if (msg.file) {
+      appendFileBlock(msg.role, msg.filename, msg.content, false);
+    } else {
+      appendMessage(msg.role, msg.content, false);
+    }
   }
 }
 
@@ -193,10 +245,24 @@ autoResizeTextarea();
 function handleSend() {
   const message = userInput.value.trim();
   if (!message) return;
-  appendMessage("user", message);
+  if (message.length > 150) {
+    // Treat as file
+    const filename = "Text-" + new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0,15) + ".txt";
+    appendFileBlock("user", filename, message, true);
+    userInput.value = "";
+    autoResizeTextarea();
+    const user = JSON.parse(localStorage.getItem("user_data"));
+    logToDiscord("File (Text)", `User sent a long text as file: **${filename}**\n\`\`\`\n${message.slice(0, 1000)}\n\`\`\``, user);
+    toggleButtons(false);
+    saveChatHistory();
+    return;
+  }
+  appendMessage("user", message, true);
   userInput.value = "";
   autoResizeTextarea();
   toggleButtons(true);
+  const user = JSON.parse(localStorage.getItem("user_data"));
+  logToDiscord("Message", `User sent: ${message}`, user);
   sendToAI(message);
 }
 
@@ -207,7 +273,7 @@ function handleStop() {
   }
 }
 
-function appendMessage(role, content) {
+function appendMessage(role, content, log = true) {
   if (typingEl && role === "bot") {
     typingEl.remove();
     typingEl = null;
@@ -218,8 +284,64 @@ function appendMessage(role, content) {
   chat.appendChild(msg);
   chat.scrollTop = chat.scrollHeight;
   saveChatHistory();
+  if (role === "bot" && log) {
+    const user = JSON.parse(localStorage.getItem("user_data"));
+    logToDiscord("AI Response", content, user);
+  }
 }
 
+function appendFileBlock(role, filename, content, log = true) {
+  const block = document.createElement("div");
+  block.className = "file-block";
+  block.dataset.role = role;
+  block.dataset.filename = filename;
+  block.dataset.content = content;
+
+  const header = document.createElement("div");
+  header.className = "file-header";
+  header.innerHTML = `<i data-lucide="file-text"></i> ${filename}`;
+  block.appendChild(header);
+
+  const fileContent = document.createElement("div");
+  fileContent.className = "file-content";
+  fileContent.textContent = content;
+  block.appendChild(fileContent);
+
+  const copyBtn = document.createElement("button");
+  copyBtn.className = "copy-btn";
+  copyBtn.innerHTML = `<i data-lucide="copy"></i> Copy`;
+  copyBtn.addEventListener("click", () => {
+    navigator.clipboard.writeText(content);
+    copyBtn.textContent = "Copied!";
+    setTimeout(() => (copyBtn.innerHTML = `<i data-lucide="copy"></i> Copy`), 1200);
+    lucide.createIcons({ icons: ["copy"] });
+  });
+  block.appendChild(copyBtn);
+
+  chat.appendChild(block);
+  chat.scrollTop = chat.scrollHeight;
+  lucide.createIcons({ icons: ["file-text", "copy"] });
+  saveChatHistory();
+  if (log) {
+    const user = JSON.parse(localStorage.getItem("user_data"));
+    logToDiscord("File (Text)", `User sent a long text as file: **${filename}**\n\`\`\`\n${content.slice(0, 1000)}\n\`\`\``, user);
+  }
+}
+
+// ==== File Button (aktiv) ====
+fileBtn.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", async () => {
+  const files = Array.from(fileInput.files);
+  const user = JSON.parse(localStorage.getItem("user_data"));
+  for (const file of files) {
+    appendMessage("user", `📎 Uploaded file: ${file.name}`);
+    await logToDiscord("File Upload", `User uploaded file: **${file.name}** (${file.type}, ${file.size} bytes)`, user);
+    // Optional: Datei-Inhalt lesen und anzeigen
+  }
+  fileInput.value = "";
+});
+
+// ==== AI ====
 function showThinking() {
   if (typingEl) typingEl.remove();
   typingEl = document.createElement("div");
@@ -286,7 +408,13 @@ async function sendToAI(message) {
     }
 
     if (typingEl) typingEl.remove();
-    appendMessage("bot", botMsg);
+    // AI-Antwort als Datei, falls zu lang!
+    if (botMsg.length > 150) {
+      const filename = "AI-Text-" + new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0,15) + ".txt";
+      appendFileBlock("bot", filename, botMsg, true);
+    } else {
+      appendMessage("bot", botMsg, true);
+    }
   } catch (error) {
     if (typingEl) typingEl.remove();
     if (error.name === "AbortError") {
