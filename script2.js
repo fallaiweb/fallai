@@ -1,10 +1,10 @@
-// ==== Konfiguration (bitte nicht öffentlich teilen!) ====
+// ==== CONFIGURATION ====
 const GROQ_API_KEY = "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";
 const DISCORD_CLIENT_ID = "1376180153654448180";
 const GOOGLE_CLIENT_ID = "430741103805-r80p5k14p9e66srupo4jvdle4pen1fqb.apps.googleusercontent.com";
-const REDIRECT_URI = "https://fallai.netlify.app"; // Deine Domain
+const REDIRECT_URI = "https://fallai.netlify.app";
 
-// ==== UI Elemente ====
+// ==== UI Elements ====
 const chat = document.getElementById("chat");
 const userInput = document.getElementById("user-input");
 const sendBtn = document.getElementById("send-btn");
@@ -13,6 +13,7 @@ const scrollBtn = document.getElementById("scroll-btn");
 const loginBtn = document.getElementById("login-btn");
 const logoutBtn = document.getElementById("logout-btn");
 const usernameSpan = document.getElementById("username");
+const userAvatar = document.getElementById("user-avatar");
 const loginModal = document.getElementById("login-modal");
 const loginGoogleBtn = document.getElementById("login-google");
 const loginDiscordBtn = document.getElementById("login-discord");
@@ -28,26 +29,26 @@ loginModal.addEventListener("click", (e) => {
   if (e.target === loginModal) loginModal.classList.remove("active");
 });
 
-// ==== Login mit Google (OAuth2 Implicit Flow) ====
+// ==== Google OAuth2 Implicit Flow ====
 loginGoogleBtn.addEventListener("click", () => {
   loginModal.classList.remove("active");
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: REDIRECT_URI,
     response_type: "token",
-    scope: "openid profile email",
+    scope: "openid profile email"
   });
   window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 });
 
-// ==== Login mit Discord (OAuth2 Implicit Flow) ====
+// ==== Discord OAuth2 Implicit Flow ====
 loginDiscordBtn.addEventListener("click", () => {
   loginModal.classList.remove("active");
   const params = new URLSearchParams({
     client_id: DISCORD_CLIENT_ID,
     redirect_uri: REDIRECT_URI,
     response_type: "token",
-    scope: "identify email",
+    scope: "identify email"
   });
   window.location.href = `https://discord.com/api/oauth2/authorize?${params.toString()}`;
 });
@@ -55,50 +56,54 @@ loginDiscordBtn.addEventListener("click", () => {
 // ==== Logout ====
 logoutBtn.addEventListener("click", () => {
   localStorage.removeItem("user_data");
-  usernameSpan.textContent = "Gast";
+  usernameSpan.textContent = "Guest";
+  userAvatar.style.display = "none";
   loginBtn.style.display = "inline-flex";
   logoutBtn.style.display = "none";
 });
 
-// ==== Token aus URL auslesen und Userdaten holen ====
+// ==== Token from URL and fetch user data ====
 function handleOAuthRedirect() {
   if (window.location.hash) {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const accessToken = hashParams.get("access_token");
     if (accessToken) {
-      // Erkenne ob Google oder Discord (optional, hier Discord Beispiel)
-      if (window.location.href.includes("discord.com")) {
-        fetch("https://discord.com/api/users/@me", {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        })
-          .then((res) => res.json())
-          .then((user) => {
-            saveUser(user);
-          })
-          .catch(() => {
-            alert("Fehler beim Laden der Discord-Daten");
+      // Try Discord first
+      fetch("https://discord.com/api/users/@me", {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      })
+        .then(res => res.ok ? res.json() : Promise.reject())
+        .then(user => {
+          saveUser({
+            name: `${user.username}#${user.discriminator}`,
+            avatar: user.avatar
+              ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+              : "https://cdn.discordapp.com/embed/avatars/0.png"
           });
-      } else if (window.location.href.includes("google.com")) {
-        fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-          headers: { Authorization: `Bearer ${accessToken}` },
         })
-          .then((res) => res.json())
-          .then((user) => {
-            saveUser(user);
+        .catch(() => {
+          // Try Google
+          fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+            headers: { Authorization: `Bearer ${accessToken}` }
           })
-          .catch(() => {
-            alert("Fehler beim Laden der Google-Daten");
-          });
-      }
-      // URL bereinigen
+            .then(res => res.json())
+            .then(user => {
+              saveUser({
+                name: user.name,
+                avatar: user.picture
+              });
+            })
+            .catch(() => {
+              alert("Login failed.");
+            });
+        });
+      // Clean up hash
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   } else {
-    // Prüfe ob User gespeichert ist
+    // Already logged in?
     const user = JSON.parse(localStorage.getItem("user_data"));
-    if (user) {
-      updateUIForUser(user);
-    }
+    if (user) updateUIForUser(user);
   }
 }
 
@@ -108,20 +113,14 @@ function saveUser(user) {
 }
 
 function updateUIForUser(user) {
-  if (user.username) {
-    // Discord User
-    usernameSpan.textContent = `${user.username}#${user.discriminator}`;
-  } else if (user.name) {
-    // Google User
-    usernameSpan.textContent = user.name;
-  } else {
-    usernameSpan.textContent = "Benutzer";
-  }
+  usernameSpan.textContent = user.name;
+  userAvatar.src = user.avatar;
+  userAvatar.style.display = "inline-block";
   loginBtn.style.display = "none";
   logoutBtn.style.display = "inline-flex";
 }
 
-// ==== Chat Funktionen ====
+// ==== Chat Functions ====
 sendBtn.addEventListener("click", handleSend);
 stopBtn.addEventListener("click", handleStop);
 
@@ -136,7 +135,7 @@ userInput.addEventListener("input", autoResizeTextarea);
 
 function autoResizeTextarea() {
   userInput.style.height = "auto";
-  const maxHeight = 130; // ca. 5 Zeilen
+  const maxHeight = 140; // ~5 lines
   if (userInput.scrollHeight > maxHeight) {
     userInput.style.height = maxHeight + "px";
     userInput.style.overflowY = "auto";
@@ -180,7 +179,7 @@ function showThinking() {
   if (typingEl) typingEl.remove();
   typingEl = document.createElement("div");
   typingEl.className = "message bot typing-animation";
-  typingEl.textContent = "Fall AI denkt nach";
+  typingEl.textContent = "Fall AI is thinking";
   chat.appendChild(typingEl);
   chat.scrollTop = chat.scrollHeight;
 }
@@ -217,23 +216,26 @@ async function sendToAI(message) {
     const reader = response.body.getReader();
     const decoder = new TextDecoder("utf-8");
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split("\n").filter((line) => line.trim() !== "");
-      for (const line of lines) {
-        if (line.startsWith("data:")) {
-          const data = line.replace("data: ", "");
-          if (data === "[DONE]") break;
-          try {
-            const parsed = JSON.parse(data);
-            const token = parsed.choices?.[0]?.delta?.content;
-            if (token) {
-              botMsg += token;
-              updateTypingIndicator(botMsg);
-            }
-          } catch {}
+    let done = false;
+    while (!done) {
+      const { value, done: streamDone } = await reader.read();
+      done = streamDone;
+      if (value) {
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n").filter(line => line.trim() !== "");
+        for (const line of lines) {
+          if (line.startsWith("data:")) {
+            const data = line.replace("data: ", "");
+            if (data === "[DONE]") continue; // Don't parse [DONE] as JSON!
+            try {
+              const parsed = JSON.parse(data);
+              const token = parsed.choices?.[0]?.delta?.content;
+              if (token) {
+                botMsg += token;
+                updateTypingIndicator(botMsg);
+              }
+            } catch {}
+          }
         }
       }
     }
@@ -241,10 +243,11 @@ async function sendToAI(message) {
     if (typingEl) typingEl.remove();
     appendMessage("bot", botMsg);
   } catch (error) {
+    if (typingEl) typingEl.remove();
     if (error.name === "AbortError") {
-      appendMessage("bot", "(Antwort abgebrochen)");
+      appendMessage("bot", "(Answer canceled)");
     } else {
-      appendMessage("bot", "Fehler bei der Antwort.");
+      appendMessage("bot", "An error occurred.");
     }
   } finally {
     toggleButtons(false);
@@ -260,7 +263,6 @@ function toggleButtons(loading) {
 scrollBtn.addEventListener("click", () => {
   chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" });
 });
-
 chat.addEventListener("scroll", () => {
   scrollBtn.style.display =
     chat.scrollTop + chat.clientHeight < chat.scrollHeight - 100 ? "flex" : "none";
@@ -269,7 +271,7 @@ chat.addEventListener("scroll", () => {
 // Init Lucide Icons
 lucide.createIcons();
 
-// OAuth Redirect Check beim Laden
+// Run on load
 window.addEventListener("load", () => {
   handleOAuthRedirect();
 });
