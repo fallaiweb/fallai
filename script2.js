@@ -37,7 +37,11 @@ function appendMessage(role, content, log = true) {
   }
   const msg = document.createElement("div");
   msg.className = `message ${role}`;
+
+  // Render markdown
   let html = marked.parse(content);
+
+  // Replace code blocks with copyable blocks
   html = html.replace(
     /<pre><code(?: class="language-\w+")?>([\s\S]*?)<\/code><\/pre>/g,
     (match, code) => {
@@ -52,6 +56,7 @@ function appendMessage(role, content, log = true) {
       `;
     }
   );
+
   msg.innerHTML = html;
   chat.appendChild(msg);
   chat.scrollTop = chat.scrollHeight;
@@ -342,6 +347,7 @@ function appendFileBlock(role, filename, content, log = true) {
     });
     block.appendChild(copyBtn);
   }
+
   chat.appendChild(block);
   chat.scrollTop = chat.scrollHeight;
   lucide.createIcons({ icons: ["file-text", "copy"] });
@@ -358,7 +364,7 @@ function getRecentCodeContext() {
   let lastUserCode = null, lastBotReply = null;
   for (let i = messages.length - 1; i >= 0; i--) {
     const msg = messages[i];
-    if (!lastUserCode && msg.classList.contains("user") && msg.innerText.match(/```
+    if (!lastUserCode && msg.classList.contains("user") && msg.innerText.includes("```
       lastUserCode = msg.innerText;
     }
     if (lastUserCode && msg.classList.contains("bot")) {
@@ -427,7 +433,7 @@ function handleSend() {
     return;
   }
 
-  // Send code block or normal message
+  // Send message
   if (message) {
     appendMessage("user", message, true);
     const user = JSON.parse(localStorage.getItem("user_data"));
@@ -473,7 +479,7 @@ async function sendToAI(message) {
     if (codeContext) {
       messagesPayload.push(
         { role: "user", content: codeContext },
-        { role: "assistant", content: codeContext }
+        { role: "assistant", content: codeContext[1] }
       );
     }
   }
