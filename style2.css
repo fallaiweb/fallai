@@ -413,6 +413,74 @@ footer button svg {
   height: 20px;
 }
 
+/* Confirm Modal */
+.confirm-modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45);
+  justify-content: center;
+  align-items: center;
+}
+.confirm-modal.active {
+  display: flex;
+}
+.confirm-modal-content {
+  background: #232323;
+  border-radius: 16px;
+  padding: 2.1rem 2.5rem 1.5rem 2.5rem;
+  box-shadow: 0 8px 32px #000a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2em;
+  min-width: 320px;
+  text-align: center;
+}
+.confirm-modal-title {
+  font-size: 1.2rem;
+  color: #e7a96f;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  justify-content: center;
+}
+.confirm-modal-text {
+  color: #e0e0e0;
+  font-size: 1.06rem;
+  margin-bottom: 0.7em;
+}
+.confirm-modal-actions {
+  display: flex;
+  gap: 1.5em;
+  justify-content: center;
+}
+.confirm-btn-yes, .confirm-btn-no {
+  padding: 0.5em 1.5em;
+  border-radius: 7px;
+  border: none;
+  font-size: 1.04rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.confirm-btn-yes {
+  background: #e7a96f;
+  color: #191919;
+}
+.confirm-btn-yes:hover {
+  background: #f1c28f;
+}
+.confirm-btn-no {
+  background: #353535;
+  color: #eee;
+}
+.confirm-btn-no:hover {
+  background: #444;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .sidebar {
