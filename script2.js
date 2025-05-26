@@ -175,3 +175,42 @@ function updateBotTyping(text) {
 
 function toggleButtons(loading) {
   sendBtn.style.display = loading ? "none" : "inline-block";
+  stopBtn.style.display = loading ? "inline-block" : "none";
+}
+
+function saveChat(msg) {
+  if (!currentUserId) return;
+  db.collection("chats").doc(currentUserId).collection("messages").add({
+    ...msg,
+    timestamp: Date.now()
+  });
+}
+
+function loadChat() {
+  if (!currentUserId) return;
+  clearChatUI();
+  db.collection("chats").doc(currentUserId).collection("messages").orderBy("timestamp").get()
+    .then(snapshot => snapshot.forEach(doc => {
+      const msg = doc.data();
+      appendMessage(msg.role, msg.content);
+    }));
+}
+
+function clearChatUI() {
+  chat.innerHTML = "";
+}
+
+function resetChat() {
+  if (!currentUserId) {
+    clearChatUI();
+    return;
+  }
+  const messagesRef = db.collection("chats").doc(currentUserId).collection("messages");
+  messagesRef.get().then(snapshot => {
+    const batch = db.batch();
+    snapshot.forEach(doc => batch.delete(doc.ref));
+    batch.commit().then(clearChatUI);
+  });
+}
+
+lucide.createIcons();
