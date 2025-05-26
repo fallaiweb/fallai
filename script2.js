@@ -1,11 +1,11 @@
 // === Firebase Config ===
 const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
-  projectId: "YOUR_FIREBASE_PROJECT_ID",
-  storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_FIREBASE_MESSAGING_SENDER_ID",
-  appId: "YOUR_FIREBASE_APP_ID"
+  apiKey: "AIzaSyAPf_EoIxzFhArc83GBaIy7h--2Kye0T3E",
+  authDomain: "fallai-e4e92.firebaseapp.com",
+  projectId: "fallai-e4e92",
+  storageBucket: "fallai-e4e92.firebasestorage.app",
+  messagingSenderId: "1015085978833",
+  appId: "1:1015085978833:web:3a51e6320a94c80bbc21f0",
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -60,8 +60,8 @@ function handleGoogleLogin() {
 
 // === Discord Login ===
 function handleDiscordLogin() {
-  const clientId = "YOUR_DISCORD_CLIENT_ID";
-  const redirectUri = encodeURIComponent("YOUR_REDIRECT_URI");
+  const clientId = "1376180153654448180";
+  const redirectUri = encodeURIComponent("https://fallai.netlify.app");
   const scope = encodeURIComponent("identify");
   const responseType = "token";
   const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}`;
@@ -95,7 +95,7 @@ function handleSend() {
   fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
-      "Authorization": "Bearer YOUR_GROQ_API_KEY",
+      "Authorization": "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",
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
