@@ -484,7 +484,7 @@ async function sendToAI(message) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gemma-7b-it",
+        model: "llama3-70b-8192",
         messages: [
           { role: "system", content: "You are Fall AI, a helpful assistant." },
           { role: "user", content: message },
