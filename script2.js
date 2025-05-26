@@ -406,24 +406,6 @@ function handleSend() {
     fileInput.value = "";
   }
 
-  // === Verbesserung/Verbesserungswunsch-Feature ===
-  if (message && isImprovementRequest(message)) {
-    const lastAI = getLastAIMessage();
-    if (lastAI) {
-      appendMessage("user", message, true);
-      logToDiscord("Improvement Request", `User requested improvement: ${message}`, JSON.parse(localStorage.getItem("user_data")));
-      sendToAI(`Verbessere folgenden Code oder Text entsprechend der Anfrage: "${message}".\n\n${lastAI}`);
-    } else {
-      appendMessage("user", message, true);
-      appendMessage("bot", "Es gibt keine vorherige AI-Antwort zum Verbessern.", true);
-    }
-    userInput.value = "";
-    autoResizeTextarea();
-    toggleButtons(false);
-    saveChatHistory();
-    return;
-  }
-
   
   // "More of that" feature
   if (message && isMoreOfThatTrigger(message)) {
