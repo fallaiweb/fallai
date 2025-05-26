@@ -20,6 +20,9 @@ const loginCancelBtn = document.getElementById("login-cancel");
 const fileBtn = document.getElementById("file-btn");
 const fileInput = document.getElementById("file-input");
 const clearBtn = document.getElementById("clear-btn");
+const confirmModal = document.getElementById("confirm-modal");
+const confirmYes = document.getElementById("confirm-yes");
+const confirmNo = document.getElementById("confirm-no");
 
 let abortController = null;
 let typingEl = null;
@@ -90,16 +93,25 @@ logoutBtn.addEventListener("click", () => {
   clearChatUI();
 });
 
-// ==== Chat Clear ====
+// ==== Chat Clear Modal ====
 clearBtn.addEventListener("click", () => {
-  if (confirm("Do you really want to delete your chat history? This cannot be undone.")) {
-    const key = getChatStorageKey();
-    if (key) localStorage.removeItem(key);
-    clearChatUI();
-    const user = JSON.parse(localStorage.getItem("user_data"));
-    appendMessage("bot", "Chat history was cleared.", false);
-    logToDiscord("Chat Cleared", "User cleared their chat history.", user);
-  }
+  confirmModal.classList.add("active");
+  lucide.createIcons({ icons: ["alert-triangle"] });
+});
+confirmYes.addEventListener("click", () => {
+  confirmModal.classList.remove("active");
+  const key = getChatStorageKey();
+  if (key) localStorage.removeItem(key);
+  clearChatUI();
+  const user = JSON.parse(localStorage.getItem("user_data"));
+  appendMessage("bot", "Chat history was cleared.", false);
+  logToDiscord("Chat Cleared", "User cleared their chat history.", user);
+});
+confirmNo.addEventListener("click", () => {
+  confirmModal.classList.remove("active");
+});
+confirmModal.addEventListener("click", (e) => {
+  if (e.target === confirmModal) confirmModal.classList.remove("active");
 });
 
 // ==== Token from URL and fetch user data ====
