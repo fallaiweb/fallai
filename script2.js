@@ -424,6 +424,25 @@ function handleSend() {
     return;
   }
 
+  
+  // "More of that" feature
+  if (message && isMoreOfThatTrigger(message)) {
+    const lastAI = getLastAIMessage();
+    if (lastAI) {
+      appendMessage("user", message, true);
+      logToDiscord("Message", `User sent: ${message} (triggered repeat of last AI message)`, JSON.parse(localStorage.getItem("user_data")));
+      sendToAI(lastAI);
+    } else {
+      appendMessage("user", message, true);
+      appendMessage("bot", "There is no previous AI message to repeat.", true);
+    }
+    userInput.value = "";
+    autoResizeTextarea();
+    toggleButtons(false);
+    saveChatHistory();
+    return;
+  }
+
   // Send code block or normal message
   if (message) {
     if (isCodeBlock(message)) {
