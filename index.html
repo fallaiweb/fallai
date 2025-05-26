@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -13,17 +13,17 @@
     <aside class="sidebar">
       <h2>🍂 Fall AI Tips</h2>
       <ul>
-        <li>Nutze <b>Enter</b> zum Senden, <b>Shift+Enter</b> für Zeilenumbruch</li>
-        <li>Login für personalisierte Erfahrung</li>
-        <li>Codeantworten werden als Copy-Block angezeigt</li>
-        <li>Probier: <i>„Gib mir ein Beispiel in Python“</i></li>
+        <li>Use <b>Enter</b> to send, <b>Shift+Enter</b> for new line</li>
+        <li>Login for personalized experience</li>
+        <li>Code replies appear as copy-paste blocks</li>
+        <li>Try: <i>“Give me a Python example”</i></li>
       </ul>
     </aside>
     <main class="main-content">
       <header>
         <h1>Fall AI</h1>
         <div class="user-info" id="user-info">
-          <span id="username">Gast</span>
+          <span id="username">Guest</span>
           <img id="user-avatar" src="" alt="avatar" style="display:none" />
           <button id="login-btn" class="plain-auth-btn">
             <span class="login-btn-icon"><i data-lucide="user"></i></span>
@@ -33,42 +33,42 @@
             <span class="login-btn-icon"><i data-lucide="log-out"></i></span>
             <span class="login-btn-text">Logout</span>
           </button>
-          <button id="clear-btn" class="plain-auth-btn" title="Chatverlauf löschen">
+          <button id="clear-btn" class="plain-auth-btn" title="Clear chat">
             <span class="login-btn-icon"><i data-lucide="trash-2"></i></span>
           </button>
         </div>
         <div id="login-modal" class="login-modal">
           <div class="login-modal-content">
-            <span class="login-modal-title">Login mit</span>
+            <span class="login-modal-title">Login with</span>
             <button id="login-google" class="login-provider-btn">
               <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google" /> Google
             </button>
             <button id="login-discord" class="login-provider-btn">
               <img src="https://img.icons8.com/ios-filled/50/7289DA/discord-logo.png" alt="Discord" /> Discord
             </button>
-            <button id="login-cancel" class="login-cancel-btn">Abbrechen</button>
+            <button id="login-cancel" class="login-cancel-btn">Cancel</button>
           </div>
         </div>
       </header>
       <section id="chat" class="chat-area"></section>
-      <div class="scroll-to-bottom" id="scroll-btn" title="Zum neuesten scrollen">
+      <div class="scroll-to-bottom" id="scroll-btn" title="Scroll to latest">
         <i data-lucide="arrow-down-circle"></i>
       </div>
       <footer>
         <input type="file" id="file-input" multiple style="display:none" />
         <div id="file-preview"></div>
-        <button id="file-btn" title="Datei hochladen"><i data-lucide="paperclip"></i> Datei</button>
-        <textarea id="user-input" placeholder="Nachricht eingeben..." rows="1"></textarea>
-        <button id="send-btn" title="Senden"><i data-lucide="send"></i></button>
+        <button id="file-btn" title="Upload file"><i data-lucide="paperclip"></i> File [Testing]</button>
+        <textarea id="user-input" placeholder="Type your message..." rows="1"></textarea>
+        <button id="send-btn" title="Send"><i data-lucide="send"></i></button>
         <button id="stop-btn" title="Stop" style="display:none"><i data-lucide="square"></i></button>
       </footer>
       <div id="confirm-modal" class="confirm-modal">
         <div class="confirm-modal-content">
-          <div class="confirm-modal-title"><i data-lucide="alert-triangle"></i> Chat löschen?</div>
-          <div class="confirm-modal-text">Willst du wirklich den Chatverlauf löschen? Das kann nicht rückgängig gemacht werden.</div>
+          <div class="confirm-modal-title"><i data-lucide="alert-triangle"></i> Clear Chat?</div>
+          <div class="confirm-modal-text">Do you really want to delete your chat history? This cannot be undone.</div>
           <div class="confirm-modal-actions">
-            <button id="confirm-yes" class="confirm-btn-yes">Ja</button>
-            <button id="confirm-no" class="confirm-btn-no">Nein</button>
+            <button id="confirm-yes" class="confirm-btn-yes">Yes</button>
+            <button id="confirm-no" class="confirm-btn-no">No</button>
           </div>
         </div>
       </div>
