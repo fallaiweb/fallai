@@ -18,13 +18,16 @@
         <li>Fall AI is a new AI – mistakes can happen!</li>
         <li>Use <b>Enter</b> to send, <b>Shift+Enter</b> for a new line</li>
         <li>Attach files and send them with your message (login required)</li>
+        <li>Markdown and code blocks supported (try <code>**bold**</code> or <code>```
+        <li>Code replies appear as copy-paste blocks</li>
+        <li>Say e.g. <i>“improve this”</i> after code to get context-aware help</li>
       </ul>
     </aside>
     <main class="main-content">
       <header>
         <h1>🍂 Fall AI</h1>
         <div class="user-info" id="user-info">
-          <span id="username">Pinkie Guest</span>
+          <span id="username">Guest</span>
           <img id="user-avatar" src="" alt="avatar" style="display:none" />
           <button id="login-btn" class="plain-auth-btn">
             <span class="login-btn-icon"><i data-lucide="user"></i></span>
@@ -38,14 +41,13 @@
             <span class="login-btn-icon"><i data-lucide="trash-2"></i></span>
           </button>
         </div>
-        <!-- Login Modal is hidden by default! -->
         <div id="login-modal" class="login-modal">
           <div class="login-modal-content">
             <span class="login-modal-title">Login with</span>
             <button id="login-google" class="login-provider-btn">
               <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google" /> Google
             </button>
-            <span>or</span>
+            <span style="color:#aaa;font-size:0.95em;">or</span>
             <button id="login-discord" class="login-provider-btn">
               <img src="https://img.icons8.com/ios-filled/50/7289DA/discord-logo.png" alt="Discord" /> Discord
             </button>
@@ -60,7 +62,7 @@
       <footer>
         <input type="file" id="file-input" multiple style="display:none" />
         <div id="file-preview"></div>
-        <button id="file-btn" title="Upload file" disabled><i data-lucide="paperclip"></i> File [Testing]</button>
+        <button id="file-btn" title="Upload file" disabled><i data-lucide="paperclip"></i> File</button>
         <textarea id="user-input" placeholder="Type your message..." rows="1"></textarea>
         <button id="send-btn" title="Send"><i data-lucide="send"></i></button>
         <button id="stop-btn" title="Stop" style="display:none"><i data-lucide="square"></i></button>
