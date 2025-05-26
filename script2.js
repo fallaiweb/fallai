@@ -48,8 +48,8 @@ function appendMessage(role, content, log = true) {
       const clean = code.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
       const id = "codeblock-" + Math.random().toString(36).substr(2, 9);
       return `
-        <div class="file-block" data-role="${role}" data-filename="Fall.ai" data-content="${clean.replace(/"/g, '&quot;')}">
-          <div class="file-header"><i data-lucide="file-text"></i> Fall.ai</div>
+        <div class="file-block" data-role="${role}" data-filename="🍂 Fall.ai" data-content="${clean.replace(/"/g, '&quot;')}">
+          <div class="file-header"><i data-lucide="file-text"></i> 🍂 Fall.ai</div>
           <div class="file-content" id="${id}"><pre>${code}</pre></div>
           <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('${id}').innerText); this.textContent='Copied!'; setTimeout(()=>this.innerHTML='<i data-lucide=copy></i> Copy',1200);"><i data-lucide="copy"></i> Copy</button>
         </div>
@@ -484,7 +484,7 @@ async function sendToAI(message) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama3-70b-8192",
+        model: "gemma-7b-it",
         messages: [
           { role: "system", content: "You are Fall AI, a helpful assistant." },
           { role: "user", content: message },
