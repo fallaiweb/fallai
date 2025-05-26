@@ -159,13 +159,17 @@ header h1 {
   align-items: center;
   gap: 0.4em;
 }
-#file-btn:hover {
+#file-btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+#file-btn:hover:not(:disabled) {
   background: #2e2e2e;
   color: #fff;
   border-color: #444;
 }
 
-/* File Preview (vor dem Senden) */
+/* File Preview (above textarea) */
 #file-preview {
   display: flex;
   align-items: center;
@@ -211,7 +215,7 @@ header h1 {
   color: #e7a96f;
 }
 
-/* File Block (im Chat) */
+/* File Block (in chat) */
 .file-block {
   background: #232323;
   border: 1.5px solid #353535;
