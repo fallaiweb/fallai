@@ -1,3 +1,4 @@
+// --- constants and selectors as before ---
 const GROQ_API_KEY = "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";
 const DISCORD_CLIENT_ID = "1376180153654448180";
 const GOOGLE_CLIENT_ID = "430741103805-r80p5k14p9e66srupo4jvdle4pen1fqb.apps.googleusercontent.com";
@@ -29,6 +30,7 @@ let abortController = null;
 let typingEl = null;
 let pendingFiles = [];
 
+// --- Utility Functions ---
 function logToDiscord(action, description, user = null) {
   const embed = {
     title: action,
@@ -44,50 +46,6 @@ function logToDiscord(action, description, user = null) {
   }).catch(() => {});
 }
 
-// Login modal handling
-loginBtn.addEventListener("click", () => loginModal.classList.add("active"));
-loginCancelBtn.addEventListener("click", () => loginModal.classList.remove("active"));
-loginModal.addEventListener("click", (e) => {
-  if (e.target === loginModal) loginModal.classList.remove("active");
-});
-
-// OAuth flows (Google & Discord)
-loginGoogleBtn.addEventListener("click", () => {
-  loginModal.classList.remove("active");
-  const params = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
-    response_type: "token",
-    scope: "openid profile email",
-  });
-  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-});
-
-loginDiscordBtn.addEventListener("click", () => {
-  loginModal.classList.remove("active");
-  const params = new URLSearchParams({
-    client_id: DISCORD_CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
-    response_type: "token",
-    scope: "identify email",
-  });
-  window.location.href = `https://discord.com/api/oauth2/authorize?${params.toString()}`;
-});
-
-// Logout
-logoutBtn.addEventListener("click", () => {
-  const user = JSON.parse(localStorage.getItem("user_data"));
-  logToDiscord("Logout", "User logged out.", user);
-  localStorage.removeItem("user_data");
-  usernameSpan.textContent = "Guest";
-  userAvatar.style.display = "none";
-  loginBtn.style.display = "inline-flex";
-  logoutBtn.style.display = "none";
-  clearChatUI();
-  updateFileBtnState();
-});
-
-// Enable file button only if logged in
 function updateFileBtnState() {
   const user = JSON.parse(localStorage.getItem("user_data"));
   fileBtn.disabled = !user;
@@ -104,7 +62,45 @@ function updateUIForUser(user) {
   loadChatHistory();
 }
 
-// Clear chat with confirmation modal
+// --- Login/Logout/Modal code as before ---
+loginBtn.addEventListener("click", () => loginModal.classList.add("active"));
+loginCancelBtn.addEventListener("click", () => loginModal.classList.remove("active"));
+loginModal.addEventListener("click", (e) => {
+  if (e.target === loginModal) loginModal.classList.remove("active");
+});
+loginGoogleBtn.addEventListener("click", () => {
+  loginModal.classList.remove("active");
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    response_type: "token",
+    scope: "openid profile email",
+  });
+  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+});
+loginDiscordBtn.addEventListener("click", () => {
+  loginModal.classList.remove("active");
+  const params = new URLSearchParams({
+    client_id: DISCORD_CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    response_type: "token",
+    scope: "identify email",
+  });
+  window.location.href = `https://discord.com/api/oauth2/authorize?${params.toString()}`;
+});
+logoutBtn.addEventListener("click", () => {
+  const user = JSON.parse(localStorage.getItem("user_data"));
+  logToDiscord("Logout", "User logged out.", user);
+  localStorage.removeItem("user_data");
+  usernameSpan.textContent = "Guest";
+  userAvatar.style.display = "none";
+  loginBtn.style.display = "inline-flex";
+  logoutBtn.style.display = "none";
+  clearChatUI();
+  updateFileBtnState();
+});
+
+// --- Confirm Modal for Clear Chat ---
 clearBtn.addEventListener("click", () => {
   confirmModal.classList.add("active");
   lucide.createIcons({ icons: ["alert-triangle"] });
@@ -125,7 +121,7 @@ confirmModal.addEventListener("click", (e) => {
   if (e.target === confirmModal) confirmModal.classList.remove("active");
 });
 
-// OAuth token handling
+// --- OAuth token handling ---
 function handleOAuthRedirect() {
   if (window.location.hash) {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -227,7 +223,7 @@ function clearChatUI() {
   chat.innerHTML = "";
 }
 
-// File upload preview
+// --- File upload preview ---
 fileBtn.addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", () => {
   pendingFiles = [];
@@ -255,15 +251,66 @@ function removePendingFile(idx) {
   if (pendingFiles.length === 0) fileInput.value = "";
 }
 
-// Helper for code block detection
+// --- "More of that" feature ---
+function isMoreOfThatTrigger(text) {
+  const triggers = [
+    "more of that",
+    "please more",
+    "more please",
+    "bitte mehr davon",
+    "mehr davon",
+    "noch mehr davon",
+    "mehr bitte"
+  ];
+  const normalized = text.trim().toLowerCase();
+  return triggers.some(trigger => normalized === trigger);
+}
+function getLastAIMessage() {
+  const messages = Array.from(chat.querySelectorAll(".message.bot, .file-block"));
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const el = messages[i];
+    if (el.classList.contains("message") && el.classList.contains("bot")) {
+      return el.textContent;
+    }
+    if (el.classList.contains("file-block") && el.dataset.role === "bot") {
+      return el.dataset.content || "";
+    }
+  }
+  return null;
+}
+
+// --- Codeblock detection ---
 function isCodeBlock(text) {
-  return /^``````$/.test(text.trim());
+  return /^``````$/m.test(text.trim());
 }
 function getCodeContent(text) {
   return text.trim().replace(/^``````$/, '');
 }
 
-// Send message and files together
+// --- Chat sending logic ---
+sendBtn.addEventListener("click", handleSend);
+stopBtn.addEventListener("click", handleStop);
+userInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    handleSend();
+  }
+});
+userInput.addEventListener("input", autoResizeTextarea);
+
+function autoResizeTextarea() {
+  userInput.style.height = "auto";
+  const maxHeight = 140;
+  if (userInput.scrollHeight > maxHeight) {
+    userInput.style.height = maxHeight + "px";
+    userInput.style.overflowY = "auto";
+  } else {
+    userInput.style.height = userInput.scrollHeight + "px";
+    userInput.style.overflowY = "hidden";
+  }
+}
+autoResizeTextarea();
+
 function handleSend() {
   const message = userInput.value.trim();
   if (!message && pendingFiles.length === 0) return;
@@ -280,7 +327,25 @@ function handleSend() {
     fileInput.value = "";
   }
 
-  // Send message
+  // "More of that" feature
+  if (message && isMoreOfThatTrigger(message)) {
+    const lastAI = getLastAIMessage();
+    if (lastAI) {
+      appendMessage("user", message, true);
+      logToDiscord("Message", `User sent: ${message} (triggered repeat of last AI message)`, JSON.parse(localStorage.getItem("user_data")));
+      sendToAI(lastAI);
+    } else {
+      appendMessage("user", message, true);
+      appendMessage("bot", "There is no previous AI message to repeat.", true);
+    }
+    userInput.value = "";
+    autoResizeTextarea();
+    toggleButtons(false);
+    saveChatHistory();
+    return;
+  }
+
+  // Send code block or normal message
   if (message) {
     if (isCodeBlock(message)) {
       appendFileBlock("user", "Fall.ai", getCodeContent(message), true);
@@ -368,7 +433,7 @@ function appendFileBlock(role, filename, content, log = true) {
   }
 }
 
-// AI streaming response
+// --- AI streaming response ---
 function showThinking() {
   if (typingEl) typingEl.remove();
   typingEl = document.createElement("div");
@@ -458,7 +523,7 @@ function toggleButtons(loading) {
   stopBtn.style.display = loading ? "inline-flex" : "none";
 }
 
-// Scroll button
+// --- Scroll button ---
 scrollBtn.addEventListener("click", () => {
   chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" });
 });
@@ -467,10 +532,10 @@ chat.addEventListener("scroll", () => {
     chat.scrollTop + chat.clientHeight < chat.scrollHeight - 100 ? "flex" : "none";
 });
 
-// Initialize icons
+// --- Init icons ---
 lucide.createIcons();
 
-// On load
+// --- On load ---
 window.addEventListener("load", () => {
   handleOAuthRedirect();
   updateFileBtnState();
