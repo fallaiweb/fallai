@@ -300,15 +300,15 @@ function handleSend() {
     saveChatHistory();
     return;
   }
-  // 2. Sende normalen Text oder Codeblock
+  // 2. Sende normalen Text oder langen Text als Datei
   const message = userInput.value.trim();
   if (!message) return;
-  if (isCodeBlock(message)) {
-    appendFileBlock("user", "🍂 Fall AI", getCodeContent(message), true);
+  if (message.length > 150) {
+    appendFileBlock("user", "Text.txt", message, true);
     userInput.value = "";
     autoResizeTextarea();
     const user = JSON.parse(localStorage.getItem("user_data"));
-    logToDiscord("Code Block", `User sent code:\n\`\`\`\n${getCodeContent(message).slice(0, 1000)}\n\`\`\``, user);
+    logToDiscord("File (Text)", `User sent a long text as file: **Text.txt**\n\`\`\`\n${message.slice(0, 1000)}\n\`\`\``, user);
     toggleButtons(false);
     saveChatHistory();
     return;
@@ -386,15 +386,6 @@ function appendFileBlock(role, filename, content, log = true) {
   }
 }
 
-// ==== Codeblock-Erkennung ====
-function isCodeBlock(text) {
-  return /^```[\s\S]*```
-}
-function getCodeContent(text) {
-  // Entfernt die ``` und optionale Sprache
-  return text.trim().replace(/^``````$/, "");
-}
-
 // ==== AI ====
 function showThinking() {
   if (typingEl) typingEl.remove();
@@ -462,10 +453,9 @@ async function sendToAI(message) {
     }
 
     if (typingEl) typingEl.remove();
-
-    // AI-Antwort als Codeblock anzeigen, wenn sie einen Codeblock enthält
-    if (isCodeBlock(botMsg)) {
-      appendFileBlock("bot", "🍂 Fall AI", getCodeContent(botMsg), true);
+    // AI-Antwort als Datei, falls zu lang!
+    if (botMsg.length > 150) {
+      appendFileBlock("bot", "Text.txt", botMsg, true);
     } else {
       appendMessage("bot", botMsg, true);
     }
