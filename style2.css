@@ -373,18 +373,20 @@ pre, .file-content pre {
   background: transparent;
 }
 .message {
-  padding: 1.1rem 1.3rem;
-  border-radius: 1.2rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 1.1rem;
   max-width: 70%;
   min-width: 70px;
   word-break: break-word;
-  font-size: 1.08rem;
+  font-size: 1.04rem;
   white-space: pre-wrap;
-  line-height: 1.5;
+  line-height: 1.45;
   box-shadow: 0 2px 12px #0002;
   background: var(--bot-bg);
   margin-left: 0.3rem;
 }
+
+
 .message.user {
   background: var(--user-bg);
   margin-left: auto;
