@@ -358,21 +358,12 @@ function appendFileBlock(role, filename, content, log = true) {
   }
 }
 
-// Context-aware code improvement
-function getRecentCodeContext() {
-  const messages = Array.from(chat.querySelectorAll(".message.user, .message.bot"));
-  let lastUserCode = null, lastBotReply = null;
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const msg = messages[i];
-    if (!lastUserCode && msg.classList.contains("user") && msg.innerText.includes("```
-      lastUserCode = msg.innerText;
-    }
-    if (lastUserCode && msg.classList.contains("bot")) {
-      lastBotReply = msg.innerText;
-      break;
-    }
-  }
-  return lastUserCode && lastBotReply ? [lastUserCode, lastBotReply] : null;
+// Code block detection
+function isCodeBlock(text) {
+  return /^``````$/.test(text.trim());
+}
+function getCodeContent(text) {
+  return text.trim().replace(/^``````$/, '');
 }
 
 // Chat sending logic
@@ -433,13 +424,21 @@ function handleSend() {
     return;
   }
 
-  // Send message
+  // Send code block or normal message
   if (message) {
-    appendMessage("user", message, true);
-    const user = JSON.parse(localStorage.getItem("user_data"));
-    logToDiscord("Message", `User sent: ${message}`, user);
-    toggleButtons(true);
-    sendToAI(message);
+    if (isCodeBlock(message)) {
+      appendMessage("user", message, true);
+      const user = JSON.parse(localStorage.getItem("user_data"));
+      logToDiscord("Code Block", `User sent code:\n\`\`\`\n${getCodeContent(message).slice(0, 1000)}\n\`\`\``, user);
+      toggleButtons(false);
+      saveChatHistory();
+    } else {
+      appendMessage("user", message, true);
+      const user = JSON.parse(localStorage.getItem("user_data"));
+      logToDiscord("Message", `User sent: ${message}`, user);
+      toggleButtons(true);
+      sendToAI(message);
+    }
   } else {
     autoResizeTextarea();
     toggleButtons(false);
@@ -456,34 +455,26 @@ function handleStop() {
   }
 }
 
-// AI streaming response with context
+// AI streaming response
+function showThinking() {
+  if (typingEl) typingEl.remove();
+  typingEl = document.createElement("div");
+  typingEl.className = "message bot typing-animation";
+  typingEl.textContent = "Fall AI is thinking";
+  chat.appendChild(typingEl);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function updateTypingIndicator(text) {
+  if (!typingEl) showThinking();
+  typingEl.textContent = text;
+  chat.scrollTop = chat.scrollHeight;
+}
+
 async function sendToAI(message) {
   showThinking();
   abortController = new AbortController();
   let botMsg = "";
-
-  // Detect if user wants to improve/change code
-  const improveTriggers = [
-    "improve this", "change this", "fix this", "make this better",
-    "kannst du das verbessern", "verbessern", "optimieren", "weiter", "continue"
-  ];
-  const lowerMsg = message.toLowerCase();
-  const wantsImprovement = improveTriggers.some(t => lowerMsg.includes(t));
-
-  // If user wants code improvement, add last code context
-  let messagesPayload = [
-    { role: "system", content: "You are Fall AI, a helpful assistant." }
-  ];
-  if (wantsImprovement) {
-    const codeContext = getRecentCodeContext();
-    if (codeContext) {
-      messagesPayload.push(
-        { role: "user", content: codeContext },
-        { role: "assistant", content: codeContext[1] }
-      );
-    }
-  }
-  messagesPayload.push({ role: "user", content: message });
 
   try {
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -494,7 +485,10 @@ async function sendToAI(message) {
       },
       body: JSON.stringify({
         model: "llama3-70b-8192",
-        messages: messagesPayload,
+        messages: [
+          { role: "system", content: "You are Fall AI, a helpful assistant." },
+          { role: "user", content: message },
+        ],
         stream: true,
       }),
       signal: abortController.signal,
@@ -516,7 +510,7 @@ async function sendToAI(message) {
             if (data === "[DONE]") continue;
             try {
               const parsed = JSON.parse(data);
-              const token = parsed.choices?.?.delta?.content;
+              const token = parsed.choices?.[0]?.delta?.content;
               if (token) {
                 botMsg += token;
                 updateTypingIndicator(botMsg);
@@ -528,6 +522,7 @@ async function sendToAI(message) {
     }
 
     if (typingEl) typingEl.remove();
+
     appendMessage("bot", botMsg, true);
   } catch (error) {
     if (typingEl) typingEl.remove();
@@ -539,21 +534,6 @@ async function sendToAI(message) {
   } finally {
     toggleButtons(false);
   }
-}
-
-function showThinking() {
-  if (typingEl) typingEl.remove();
-  typingEl = document.createElement("div");
-  typingEl.className = "message bot typing-animation";
-  typingEl.textContent = "Fall AI is thinking";
-  chat.appendChild(typingEl);
-  chat.scrollTop = chat.scrollHeight;
-}
-
-function updateTypingIndicator(text) {
-  if (!typingEl) showThinking();
-  typingEl.textContent = text;
-  chat.scrollTop = chat.scrollHeight;
 }
 
 function toggleButtons(loading) {
