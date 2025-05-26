@@ -193,38 +193,7 @@ footer button svg {
   display: none;
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-  .app {
-    max-width: 100%;
-  }
-
-  .user-info span {
-    display: none;
-  }
-
-  textarea {
-    font-size: 0.9rem;
-  }
-
-  header h1 {
-    font-size: 1.1rem;
-  }
-}
-
-/* Scrollbar Styling */
-.chat-area::-webkit-scrollbar {
-  width: 8px;
-}
-
-.chat-area::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.chat-area::-webkit-scrollbar-thumb {
-  background: #444;
-  border-radius: 4px;
-}
+/* Login Modal Styles */
 .login-modal {
   display: none;
   position: fixed;
@@ -293,4 +262,32 @@ footer button svg {
 }
 #logout-btn {
   display: none;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .app {
+    max-width: 100%;
+  }
+  .user-info span {
+    display: none;
+  }
+  textarea {
+    font-size: 0.9rem;
+  }
+  header h1 {
+    font-size: 1.1rem;
+  }
+}
+
+/* Scrollbar Styling */
+.chat-area::-webkit-scrollbar {
+  width: 8px;
+}
+.chat-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+.chat-area::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
 }
