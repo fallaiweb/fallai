@@ -38,6 +38,33 @@ chat.addEventListener('scroll', () => {
   scrollBtn.style.display = chat.scrollTop + chat.clientHeight < chat.scrollHeight - 100 ? "flex" : "none";
 });
 
+// Dynamisches Textarea-Resizing & Enter/Shift+Enter Handling
+userInput.addEventListener('input', autoResizeTextarea);
+userInput.addEventListener('keydown', function(e) {
+  if (e.key === "Enter") {
+    if (e.shiftKey) {
+      // Neue Zeile
+      return;
+    } else {
+      e.preventDefault();
+      handleSend();
+    }
+  }
+});
+
+function autoResizeTextarea() {
+  userInput.style.height = 'auto';
+  const maxHeight = 130; // ca. 5 Zeilen
+  if (userInput.scrollHeight > maxHeight) {
+    userInput.style.height = maxHeight + "px";
+    userInput.style.overflowY = "auto";
+  } else {
+    userInput.style.height = userInput.scrollHeight + "px";
+    userInput.style.overflowY = "hidden";
+  }
+}
+autoResizeTextarea();
+
 function loginWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider).then(result => {
@@ -82,7 +109,11 @@ function handleSend() {
 
   appendMessage("user", message);
   userInput.value = "";
+  autoResizeTextarea();
   toggleButtons(true);
+
+  // "Fall AI is thinking..." anzeigen
+  showThinking();
 
   abortController = new AbortController();
   let botMsg = "";
@@ -108,7 +139,7 @@ function handleSend() {
 
     const read = () => reader.read().then(({ value, done }) => {
       if (done) {
-        appendMessage("bot", botMsg);
+        finishTyping(botMsg);
         toggleButtons(false);
         saveChat({ role: "user", content: message });
         saveChat({ role: "bot", content: botMsg });
@@ -136,9 +167,9 @@ function handleSend() {
     return read();
   }).catch(error => {
     if (error.name === "AbortError") {
-      appendMessage("bot", "(Answer canceled)");
+      finishTyping("(Answer canceled)");
     } else {
-      appendMessage("bot", "An error occurred.");
+      finishTyping("An error occurred.");
     }
     toggleButtons(false);
   });
@@ -163,14 +194,26 @@ function appendMessage(role, content) {
 }
 
 let typingEl = null;
-function updateBotTyping(text) {
-  if (!typingEl) {
-    typingEl = document.createElement("div");
-    typingEl.className = "message bot";
-    chat.appendChild(typingEl);
-  }
-  typingEl.textContent = text;
+function showThinking() {
+  if (typingEl) typingEl.remove();
+  typingEl = document.createElement("div");
+  typingEl.className = "message bot";
+  typingEl.innerHTML = '<em>Fall AI is thinking...</em>';
+  chat.appendChild(typingEl);
   chat.scrollTop = chat.scrollHeight;
+}
+
+function updateBotTyping(text) {
+  if (!typingEl) showThinking();
+  typingEl.innerHTML = `<em>Fall AI is thinking...</em><br><span id="typing-text"></span>`;
+  const typingSpan = typingEl.querySelector("#typing-text");
+  typingSpan.textContent = text;
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function finishTyping(text) {
+  if (typingEl) typingEl.remove();
+  appendMessage("bot", text);
 }
 
 function toggleButtons(loading) {
