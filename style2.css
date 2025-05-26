@@ -105,45 +105,64 @@ header h1 {
   white-space: nowrap;
 }
 
-/* Simple Auth Button */
-.simple-auth-btn {
+/* Plain Auth Button */
+.plain-auth-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5em;
-  background: #262626;
-  color: #e0e0e0;
+  background: #232323;
+  color: #e3e3e3;
   font-weight: 500;
-  font-size: 0.97rem;
-  padding: 0.45em 1em;
-  border: 1.5px solid #373737;
+  font-size: 0.98rem;
+  padding: 0.48em 1.1em;
+  border: 1.5px solid #353535;
   border-radius: 7px;
-  box-shadow: none;
   cursor: pointer;
-  transition: background 0.18s, color 0.18s, border 0.18s, transform 0.12s;
   outline: none;
   min-width: 0;
   min-height: 0;
   height: 34px;
+  box-shadow: none;
+  transition: background 0.13s;
 }
-.simple-auth-btn .login-btn-icon {
+.plain-auth-btn .login-btn-icon {
   display: flex;
   align-items: center;
   font-size: 1.07em;
 }
-.simple-auth-btn .login-btn-text {
+.plain-auth-btn .login-btn-text {
   letter-spacing: 0.01em;
 }
-.simple-auth-btn:hover, .simple-auth-btn:focus-visible {
-  background: #333;
+.plain-auth-btn:hover, .plain-auth-btn:focus-visible {
+  background: #2e2e2e;
   color: #fff;
-  border-color: #555;
-  transform: translateY(-1px) scale(1.03);
+  border-color: #444;
 }
-.simple-auth-btn:active {
-  background: #222;
+.plain-auth-btn:active {
+  background: #1a1a1a;
   color: #ccc;
   border-color: #444;
-  transform: scale(0.97);
+}
+
+/* File Button */
+#file-btn {
+  background: #232323;
+  color: #e3e3e3;
+  border: 1.5px solid #353535;
+  border-radius: 7px;
+  padding: 0.48em 1.1em;
+  margin-right: 0.5em;
+  cursor: pointer;
+  height: 34px;
+  transition: background 0.13s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+#file-btn:hover {
+  background: #2e2e2e;
+  color: #fff;
+  border-color: #444;
 }
 
 /* Login Modal */
