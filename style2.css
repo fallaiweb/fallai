@@ -165,7 +165,61 @@ header h1 {
   border-color: #444;
 }
 
-/* File Block */
+/* File Preview (vor dem Senden) */
+#file-preview {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  margin-right: 0.5em;
+  margin-bottom: 0.2em;
+  min-width: 0;
+  max-width: 250px;
+}
+.file-preview-block {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  background: #232323;
+  border: 1.5px solid #353535;
+  border-radius: 7px;
+  padding: 0.3em 0.7em 0.3em 0.5em;
+  min-width: 0;
+  max-width: 250px;
+  overflow: hidden;
+}
+.file-preview-block img {
+  max-width: 48px;
+  max-height: 48px;
+  border-radius: 6px;
+  border: 1px solid #353535;
+  background: #181818;
+  object-fit: cover;
+}
+.file-preview-block .file-preview-filename {
+  color: #e7a96f;
+  font-size: 0.98em;
+  max-width: 110px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.file-preview-block .file-preview-remove {
+  background: none;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  margin-left: 0.2em;
+  font-size: 1.1em;
+  padding: 0.2em;
+  border-radius: 4px;
+  transition: background 0.13s;
+}
+.file-preview-block .file-preview-remove:hover {
+  background: #2e2e2e;
+  color: #e7a96f;
+}
+
+/* File Block (im Chat) */
 .file-block {
   background: #232323;
   border: 1.5px solid #353535;
@@ -211,6 +265,36 @@ header h1 {
 }
 .file-block .copy-btn:hover {
   background: #2e2e2e;
+}
+
+/* Bildblock im Chat */
+.image-block {
+  background: #232323;
+  border: 1.5px solid #353535;
+  border-radius: 8px;
+  padding: 0.9em 1.1em;
+  margin: 0.5em 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  position: relative;
+  word-break: break-all;
+  max-width: 300px;
+}
+.image-block .file-header {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  font-size: 0.98em;
+  color: #e7a96f;
+  margin-bottom: 0.2em;
+}
+.image-block img {
+  max-width: 220px;
+  max-height: 180px;
+  border-radius: 8px;
+  display: block;
+  margin-bottom: 0.3em;
 }
 
 /* Login Modal */
