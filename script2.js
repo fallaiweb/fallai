@@ -1,11 +1,11 @@
-// === Firebase Config ===
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAPf_EoIxzFhArc83GBaIy7h--2Kye0T3E",
   authDomain: "fallai-e4e92.firebaseapp.com",
   projectId: "fallai-e4e92",
   storageBucket: "fallai-e4e92.appspot.com",
   messagingSenderId: "1015085978833",
-  appId: "1:1015085978833:web:3a51e6320a94c80bbc21f0",
+  appId: "1:1015085978833:web:3a51e6320a94c80bbc21f0"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -16,78 +16,66 @@ let user = { displayName: "Guest" };
 let currentUserId = null;
 let abortController = null;
 
-// === DOM Elements ===
 const chat = document.getElementById('chat');
 const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 const stopBtn = document.getElementById('stop-btn');
-const googleLoginBtn = document.getElementById('google-login-btn');
-const discordLoginBtn = document.getElementById('discord-login-btn');
+const scrollBtn = document.getElementById('scroll-btn');
+const loginGoogle = document.getElementById('login-google');
+const loginDiscord = document.getElementById('login-discord');
 const logoutBtn = document.getElementById('logout-btn');
 const usernameSpan = document.getElementById('username');
 const resetBtn = document.getElementById('reset-chat-btn');
-const scrollDownBtn = document.getElementById('scroll-down-btn');
-const chatContainer = document.getElementById('chat-container');
 
-// === Event Listeners ===
 sendBtn.addEventListener('click', handleSend);
 stopBtn.addEventListener('click', handleStop);
-googleLoginBtn.addEventListener('click', handleGoogleLogin);
-discordLoginBtn.addEventListener('click', handleDiscordLogin);
+loginGoogle.addEventListener('click', loginWithGoogle);
+loginDiscord.addEventListener('click', loginWithDiscord);
 logoutBtn.addEventListener('click', handleLogout);
 resetBtn.addEventListener('click', resetChat);
-scrollDownBtn.addEventListener('click', () => {
-  chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
-});
-chatContainer.addEventListener('scroll', () => {
-  const nearBottom = chatContainer.scrollHeight - chatContainer.scrollTop <= chatContainer.clientHeight + 100;
-  scrollDownBtn.style.display = nearBottom ? 'none' : 'block';
-});
-userInput.addEventListener('keydown', (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    handleSend();
-  }
+scrollBtn.addEventListener('click', () => chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" }));
+chat.addEventListener('scroll', () => {
+  scrollBtn.style.display = chat.scrollTop + chat.clientHeight < chat.scrollHeight - 100 ? "flex" : "none";
 });
 
-// === Google Login ===
-function handleGoogleLogin() {
+function loginWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider).then(result => {
     user = result.user;
     currentUserId = user.uid;
     usernameSpan.textContent = user.displayName;
-    googleLoginBtn.style.display = 'none';
-    discordLoginBtn.style.display = 'none';
+    loginGoogle.style.display = 'none';
+    loginDiscord.style.display = 'none';
     logoutBtn.style.display = 'inline-block';
     loadChat();
   });
 }
 
-// === Discord Login ===
-function handleDiscordLogin() {
-  const clientId = "1376180153654448180";
-  const redirectUri = encodeURIComponent("https://fallai.netlify.app");
-  const scope = encodeURIComponent("identify");
-  const responseType = "token";
-  const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}`;
-  window.location.href = discordAuthUrl;
+function loginWithDiscord() {
+  const provider = new firebase.auth.OAuthProvider('oidc.discord');
+  auth.signInWithPopup(provider).then(result => {
+    user = result.user;
+    currentUserId = user.uid;
+    usernameSpan.textContent = user.displayName;
+    loginGoogle.style.display = 'none';
+    loginDiscord.style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
+    loadChat();
+  });
 }
 
-// === Logout ===
 function handleLogout() {
   auth.signOut().then(() => {
     user = { displayName: "Guest" };
     currentUserId = null;
     usernameSpan.textContent = "Guest";
-    googleLoginBtn.style.display = 'inline-block';
-    discordLoginBtn.style.display = 'inline-block';
+    loginGoogle.style.display = 'inline-block';
+    loginDiscord.style.display = 'inline-block';
     logoutBtn.style.display = 'none';
     clearChatUI();
   });
 }
 
-// === Send Message ===
 function handleSend() {
   const message = userInput.value.trim();
   if (!message) return;
@@ -97,11 +85,12 @@ function handleSend() {
   toggleButtons(true);
 
   abortController = new AbortController();
+  let botMsg = "";
 
   fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
-      "Authorization": "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",
+      "Authorization": "Bearer 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",
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
@@ -113,11 +102,9 @@ function handleSend() {
       stream: true
     }),
     signal: abortController.signal
-  })
-  .then(response => {
+  }).then(response => {
     const reader = response.body.getReader();
     const decoder = new TextDecoder("utf-8");
-    let botMsg = "";
 
     const read = () => reader.read().then(({ value, done }) => {
       if (done) {
@@ -145,77 +132,46 @@ function handleSend() {
       }
       return read();
     });
-    read();
-  })
-  .catch(() => {
-    appendMessage("bot", "Fehler beim Laden der Antwort.");
+
+    return read();
+  }).catch(error => {
+    if (error.name === "AbortError") {
+      appendMessage("bot", "(Answer canceled)");
+    } else {
+      appendMessage("bot", "An error occurred.");
+    }
     toggleButtons(false);
   });
 }
 
 function handleStop() {
-  if (abortController) abortController.abort();
-  toggleButtons(false);
-}
-
-function toggleButtons(loading) {
-  sendBtn.style.display = loading ? 'none' : 'inline-block';
-  stopBtn.style.display = loading ? 'inline-block' : 'none';
+  if (abortController) {
+    abortController.abort();
+  }
 }
 
 function appendMessage(role, content) {
-  const msg = document.createElement('div');
+  if (typingEl && role === "bot") {
+    typingEl.remove();
+    typingEl = null;
+  }
+  const msg = document.createElement("div");
   msg.className = `message ${role}`;
-  msg.innerHTML = marked.parse(content);
+  msg.textContent = content;
   chat.appendChild(msg);
-  chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
+  chat.scrollTop = chat.scrollHeight;
 }
 
-function updateBotTyping(content) {
-  let lastMsg = chat.querySelector('.message.bot:last-child');
-  if (!lastMsg) {
-    lastMsg = document.createElement('div');
-    lastMsg.className = 'message bot';
-    chat.appendChild(lastMsg);
+let typingEl = null;
+function updateBotTyping(text) {
+  if (!typingEl) {
+    typingEl = document.createElement("div");
+    typingEl.className = "message bot";
+    chat.appendChild(typingEl);
   }
-  lastMsg.innerHTML = marked.parse(content);
-  chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
+  typingEl.textContent = text;
+  chat.scrollTop = chat.scrollHeight;
 }
 
-function resetChat() {
-  chat.innerHTML = '';
-  if (currentUserId) {
-    db.collection('chats').doc(currentUserId).set({ messages: [] });
-  }
-}
-
-function clearChatUI() {
-  chat.innerHTML = '';
-}
-
-function saveChat(message) {
-  if (!currentUserId) return;
-  db.collection('chats').doc(currentUserId).get().then(doc => {
-    let messages = [];
-    if (doc.exists) messages = doc.data().messages || [];
-    messages.push(message);
-    db.collection('chats').doc(currentUserId).set({ messages });
-  });
-}
-
-function loadChat() {
-  if (!currentUserId) return;
-  db.collection('chats').doc(currentUserId).get().then(doc => {
-    chat.innerHTML = '';
-    if (doc.exists) {
-      const messages = doc.data().messages || [];
-      messages.forEach(msg => appendMessage(msg.role, msg.content));
-    }
-  });
-}
-
-// === Initial UI State ===
-googleLoginBtn.style.display = 'inline-block';
-discordLoginBtn.style.display = 'inline-block';
-logoutBtn.style.display = 'none';
-usernameSpan.textContent = "Guest";
+function toggleButtons(loading) {
+  sendBtn.style.display = loading ? "none" : "inline-block";
