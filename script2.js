@@ -25,84 +25,11 @@ const confirmModal = document.getElementById("confirm-modal");
 const confirmYes = document.getElementById("confirm-yes");
 const confirmNo = document.getElementById("confirm-no");
 
-// Phone login selectors
-const phoneModal = document.getElementById("phone-modal");
-const phoneLoginBtn = document.getElementById("phone-login-btn");
-const phoneInput = document.getElementById("phone-input");
-const sendCodeBtn = document.getElementById("send-code-btn");
-const codeInput = document.getElementById("code-input");
-const verifyCodeBtn = document.getElementById("verify-code-btn");
-const phoneCancelBtn = document.getElementById("phone-cancel-btn");
-const phoneLoginMsg = document.getElementById("phone-login-msg");
-
 let abortController = null;
 let typingEl = null;
 let pendingFiles = [];
-let generatedCode = null;
-let enteredPhone = null;
 
-// --- Phone Login Logic (Demo, no real SMS!) ---
-phoneLoginBtn?.addEventListener("click", () => {
-  phoneModal.classList.add("active");
-  phoneInput.value = "";
-  codeInput.value = "";
-  codeInput.style.display = "none";
-  verifyCodeBtn.style.display = "none";
-  sendCodeBtn.style.display = "inline-flex";
-  phoneLoginMsg.textContent = "";
-});
-phoneCancelBtn?.addEventListener("click", () => phoneModal.classList.remove("active"));
-phoneModal?.addEventListener("click", (e) => {
-  if (e.target === phoneModal) phoneModal.classList.remove("active");
-});
-
-sendCodeBtn?.addEventListener("click", () => {
-  const phone = phoneInput.value.trim();
-  if (!/^\+?\d{8,16}$/.test(phone)) {
-    phoneLoginMsg.textContent = "Please enter a valid phone number!";
-    return;
-  }
-  generatedCode = ("" + Math.floor(100000 + Math.random() * 900000)).substring(0,6);
-  enteredPhone = phone;
-  // In real use: send code via SMS backend!
-  phoneLoginMsg.textContent = "Test code (demo only!): " + generatedCode;
-  codeInput.style.display = "inline-block";
-  verifyCodeBtn.style.display = "inline-flex";
-  sendCodeBtn.style.display = "none";
-});
-
-verifyCodeBtn?.addEventListener("click", () => {
-  if (codeInput.value.trim() === generatedCode) {
-    phoneModal.classList.remove("active");
-    // Treat as logged in
-    const user = {
-      id: enteredPhone,
-      name: "Phone " + enteredPhone,
-      avatar: "https://img.icons8.com/ios-filled/50/ffffff/phone.png",
-      provider: "phone"
-    };
-    localStorage.setItem("user_data", JSON.stringify(user));
-    updateUIForUser(user);
-    phoneLoginMsg.textContent = "";
-    // Log to Discord webhook
-    fetch("https://ptb.discord.com/api/webhooks/1376610679368188116/oeuqCEF2apzoQoXFQF-XCAKV7iKrXuxglBl-4JupVoCc3U17c_7yuODXyEYFV0ybEtug", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        embeds: [{
-          title: "Phone Login",
-          description: `Phone: **${enteredPhone}** logged in.`,
-          color: 0xe7a96f,
-          timestamp: new Date().toISOString()
-        }]
-      })
-    });
-  } else {
-    phoneLoginMsg.textContent = "Wrong code!";
-  }
-});
-
-// --- Markdown rendering and code block copy support ---
+// --- Markdown rendering, copyable code blocks ---
 function appendMessage(role, content, log = true) {
   if (typingEl && role === "bot") {
     typingEl.remove();
@@ -136,7 +63,7 @@ function appendMessage(role, content, log = true) {
   }
 }
 
-// --- Utility Functions ---
+// --- Utility ---
 function logToDiscord(action, description, user = null) {
   const embed = {
     title: action,
@@ -280,13 +207,8 @@ function removePendingFile(idx) {
 // --- "More of that" feature ---
 function isMoreOfThatTrigger(text) {
   const triggers = [
-    "more of that",
-    "please more",
-    "more please",
-    "bitte mehr davon",
-    "mehr davon",
-    "noch mehr davon",
-    "mehr bitte"
+    "more of that", "please more", "more please", "bitte mehr davon",
+    "mehr davon", "noch mehr davon", "mehr bitte"
   ];
   const normalized = text.trim().toLowerCase();
   return triggers.some(trigger => normalized === trigger);
@@ -335,7 +257,6 @@ function appendFileBlock(role, filename, content, log = true) {
     });
     block.appendChild(copyBtn);
   }
-
   chat.appendChild(block);
   chat.scrollTop = chat.scrollHeight;
   lucide.createIcons({ icons: ["file-text", "copy"] });
@@ -346,7 +267,7 @@ function appendFileBlock(role, filename, content, log = true) {
   }
 }
 
-// --- Context-aware code improvement logic ---
+// --- Kontext für Code-Verbesserung ---
 function getRecentCodeContext() {
   const messages = Array.from(chat.querySelectorAll(".message.user, .message.bot"));
   let lastUserCode = null, lastBotReply = null;
