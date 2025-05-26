@@ -19,6 +19,7 @@ const loginDiscordBtn = document.getElementById("login-discord");
 const loginCancelBtn = document.getElementById("login-cancel");
 const fileBtn = document.getElementById("file-btn");
 const fileInput = document.getElementById("file-input");
+const filePreview = document.getElementById("file-preview");
 const clearBtn = document.getElementById("clear-btn");
 const confirmModal = document.getElementById("confirm-modal");
 const confirmYes = document.getElementById("confirm-yes");
@@ -26,8 +27,8 @@ const confirmNo = document.getElementById("confirm-no");
 
 let abortController = null;
 let typingEl = null;
+let pendingFiles = []; // {file, url, type: 'image'|'file'}
 
-// --- Discord Webhook Logging ---
 async function logToDiscord(action, description, user = null) {
   const embed = {
     title: action,
@@ -184,13 +185,20 @@ function saveChatHistory() {
   const key = getChatStorageKey();
   if (!key) return;
   const messages = [];
-  document.querySelectorAll("#chat .message, #chat .file-block").forEach(msg => {
+  document.querySelectorAll("#chat .message, #chat .file-block, #chat .image-block").forEach(msg => {
     if (msg.classList.contains("file-block")) {
       messages.push({
         role: msg.dataset.role,
         file: true,
         filename: msg.dataset.filename,
         content: msg.dataset.content
+      });
+    } else if (msg.classList.contains("image-block")) {
+      messages.push({
+        role: msg.dataset.role,
+        image: true,
+        filename: msg.dataset.filename,
+        url: msg.dataset.url
       });
     } else {
       messages.push({
@@ -208,7 +216,9 @@ function loadChatHistory() {
   const messages = JSON.parse(localStorage.getItem(key) || "[]");
   clearChatUI();
   for (const msg of messages) {
-    if (msg.file) {
+    if (msg.image) {
+      appendImageBlock(msg.role, msg.filename, msg.url, false);
+    } else if (msg.file) {
       appendFileBlock(msg.role, msg.filename, msg.content, false);
     } else {
       appendMessage(msg.role, msg.content, false);
@@ -227,6 +237,55 @@ function updateUIForUser(user) {
   loginBtn.style.display = "none";
   logoutBtn.style.display = "inline-flex";
   loadChatHistory();
+}
+
+// ==== File Upload Preview ====
+fileBtn.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", () => {
+  pendingFiles = [];
+  filePreview.innerHTML = "";
+  const files = Array.from(fileInput.files);
+  for (const file of files) {
+    const ext = file.name.split(".").pop().toLowerCase();
+    if (["jpg","jpeg","png","gif","webp"].includes(ext) && file.type.startsWith("image/")) {
+      const url = URL.createObjectURL(file);
+      pendingFiles.push({file, url, type: "image", filename: file.name});
+      addImagePreview(url, file.name, pendingFiles.length-1);
+    } else {
+      pendingFiles.push({file, type: "file", filename: file.name});
+      addFilePreview(file.name, pendingFiles.length-1);
+    }
+  }
+  lucide.createIcons({ icons: ["file-text", "x"] });
+});
+
+function addImagePreview(url, filename, idx) {
+  const block = document.createElement("div");
+  block.className = "file-preview-block";
+  block.innerHTML = `<img src="${url}" alt="${filename}"><span class="file-preview-filename">${filename}</span>
+    <button class="file-preview-remove" title="Remove" data-idx="${idx}"><i data-lucide="x"></i></button>`;
+  filePreview.appendChild(block);
+  block.querySelector(".file-preview-remove").onclick = () => removePendingFile(idx);
+}
+function addFilePreview(filename, idx) {
+  const block = document.createElement("div");
+  block.className = "file-preview-block";
+  block.innerHTML = `<i data-lucide="file-text"></i><span class="file-preview-filename">${filename}</span>
+    <button class="file-preview-remove" title="Remove" data-idx="${idx}"><i data-lucide="x"></i></button>`;
+  filePreview.appendChild(block);
+  block.querySelector(".file-preview-remove").onclick = () => removePendingFile(idx);
+}
+function removePendingFile(idx) {
+  pendingFiles.splice(idx, 1);
+  // Re-render preview
+  filePreview.innerHTML = "";
+  pendingFiles.forEach((f, i) => {
+    if (f.type === "image") addImagePreview(f.url, f.filename, i);
+    else addFilePreview(f.filename, i);
+  });
+  lucide.createIcons({ icons: ["file-text", "x"] });
+  // Reset file input if empty
+  if (pendingFiles.length === 0) fileInput.value = "";
 }
 
 // ==== Chat Functions ====
@@ -256,10 +315,32 @@ function autoResizeTextarea() {
 autoResizeTextarea();
 
 function handleSend() {
+  // 1. Sende ggf. Bilder
+  if (pendingFiles.length > 0) {
+    for (const pf of pendingFiles) {
+      if (pf.type === "image") {
+        appendImageBlock("user", pf.filename, pf.url, true);
+        const user = JSON.parse(localStorage.getItem("user_data"));
+        logToDiscord("Image Upload", `User sent image: **${pf.filename}**`, user);
+      } else if (pf.type === "file") {
+        appendFileBlock("user", pf.filename, "", true);
+        const user = JSON.parse(localStorage.getItem("user_data"));
+        logToDiscord("File Upload", `User sent file: **${pf.filename}**`, user);
+      }
+    }
+    pendingFiles.forEach(f => { if (f.url) URL.revokeObjectURL(f.url); });
+    pendingFiles = [];
+    filePreview.innerHTML = "";
+    fileInput.value = "";
+    autoResizeTextarea();
+    toggleButtons(false);
+    saveChatHistory();
+    return;
+  }
+  // 2. Sende normalen Text
   const message = userInput.value.trim();
   if (!message) return;
   if (message.length > 150) {
-    // Treat as file
     const filename = "Text-" + new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0,15) + ".txt";
     appendFileBlock("user", filename, message, true);
     userInput.value = "";
@@ -315,21 +396,23 @@ function appendFileBlock(role, filename, content, log = true) {
   header.innerHTML = `<i data-lucide="file-text"></i> ${filename}`;
   block.appendChild(header);
 
-  const fileContent = document.createElement("div");
-  fileContent.className = "file-content";
-  fileContent.textContent = content;
-  block.appendChild(fileContent);
+  if (content && content.length > 0) {
+    const fileContent = document.createElement("div");
+    fileContent.className = "file-content";
+    fileContent.textContent = content;
+    block.appendChild(fileContent);
 
-  const copyBtn = document.createElement("button");
-  copyBtn.className = "copy-btn";
-  copyBtn.innerHTML = `<i data-lucide="copy"></i> Copy`;
-  copyBtn.addEventListener("click", () => {
-    navigator.clipboard.writeText(content);
-    copyBtn.textContent = "Copied!";
-    setTimeout(() => (copyBtn.innerHTML = `<i data-lucide="copy"></i> Copy`), 1200);
-    lucide.createIcons({ icons: ["copy"] });
-  });
-  block.appendChild(copyBtn);
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "copy-btn";
+    copyBtn.innerHTML = `<i data-lucide="copy"></i> Copy`;
+    copyBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText(content);
+      copyBtn.textContent = "Copied!";
+      setTimeout(() => (copyBtn.innerHTML = `<i data-lucide="copy"></i> Copy`), 1200);
+      lucide.createIcons({ icons: ["copy"] });
+    });
+    block.appendChild(copyBtn);
+  }
 
   chat.appendChild(block);
   chat.scrollTop = chat.scrollHeight;
@@ -337,22 +420,41 @@ function appendFileBlock(role, filename, content, log = true) {
   saveChatHistory();
   if (log) {
     const user = JSON.parse(localStorage.getItem("user_data"));
-    logToDiscord("File (Text)", `User sent a long text as file: **${filename}**\n\`\`\`\n${content.slice(0, 1000)}\n\`\`\``, user);
+    logToDiscord("File (Text/File)", `User sent a file: **${filename}**${content ? `\n\`\`\`\n${content.slice(0, 1000)}\n\`\`\`` : ""}`, user);
   }
 }
 
-// ==== File Button (aktiv) ====
-fileBtn.addEventListener("click", () => fileInput.click());
-fileInput.addEventListener("change", async () => {
-  const files = Array.from(fileInput.files);
-  const user = JSON.parse(localStorage.getItem("user_data"));
-  for (const file of files) {
-    appendMessage("user", `📎 Uploaded file: ${file.name}`);
-    await logToDiscord("File Upload", `User uploaded file: **${file.name}** (${file.type}, ${file.size} bytes)`, user);
-    // Optional: Datei-Inhalt lesen und anzeigen
+function appendImageBlock(role, filename, url, log = true) {
+  const block = document.createElement("div");
+  block.className = "image-block";
+  block.dataset.role = role;
+  block.dataset.filename = filename;
+  block.dataset.url = url;
+
+  const header = document.createElement("div");
+  header.className = "file-header";
+  header.innerHTML = `<i data-lucide="image"></i> ${filename}`;
+  block.appendChild(header);
+
+  const img = document.createElement("img");
+  img.src = url;
+  img.alt = filename;
+  img.style.maxWidth = "220px";
+  img.style.maxHeight = "180px";
+  img.style.borderRadius = "8px";
+  img.style.display = "block";
+  img.style.marginBottom = "0.3em";
+  block.appendChild(img);
+
+  chat.appendChild(block);
+  chat.scrollTop = chat.scrollHeight;
+  lucide.createIcons({ icons: ["image"] });
+  saveChatHistory();
+  if (log) {
+    const user = JSON.parse(localStorage.getItem("user_data"));
+    logToDiscord("Image Upload", `User sent image: **${filename}**`, user);
   }
-  fileInput.value = "";
-});
+}
 
 // ==== AI ====
 function showThinking() {
