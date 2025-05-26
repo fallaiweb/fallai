@@ -1,48 +1,58 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fall AI</title>
   <link rel="stylesheet" href="style2.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍂</text></svg>">
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <h1>Fall AI</h1>
-      <div class="user-info">
-        <span id="username">Guest</span>
-        <button id="login-btn"><i data-lucide="user"></i> Login</button>
-        <button id="logout-btn" style="display:none;"><i data-lucide="log-out"></i> Logout</button>
-      </div>
-      <div id="login-modal" class="login-modal">
-        <div class="login-modal-content">
-          <span class="login-modal-title">Login with</span>
-          <button id="login-google" class="login-provider-btn">
-            <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google" /> Google
-          </button>
-          <button id="login-discord" class="login-provider-btn">
-            <img src="https://img.icons8.com/ios-filled/50/7289DA/discord-logo.png" alt="Discord" /> Discord
-          </button>
-          <button id="login-cancel" class="login-cancel-btn">Cancle</button>
+  <div class="layout">
+    <aside class="sidebar">
+      <h2>🍂 Fall AI Tips</h2>
+      <ul>
+        <li>Use <b>Enter</b> to send, <b>Shift+Enter</b> for a new line</li>
+        <li>Login for personalized experience</li>
+        <li>Try: <i>“Tell me a fun fact”</i></li>
+        <li>Try: <i>“Summarize this text:”</i></li>
+        <li>Try: <i>“Give me a productivity tip”</i></li>
+      </ul>
+    </aside>
+    <main class="main-content">
+      <header>
+        <h1>Fall AI</h1>
+        <div class="user-info" id="user-info">
+          <span id="username">Guest</span>
+          <img id="user-avatar" src="" alt="avatar" style="display:none;">
+          <button id="login-btn"><i data-lucide="user"></i> Login</button>
+          <button id="logout-btn" style="display:none;"><i data-lucide="log-out"></i> Logout</button>
         </div>
+        <div id="login-modal" class="login-modal">
+          <div class="login-modal-content">
+            <span class="login-modal-title">Login with</span>
+            <button id="login-google" class="login-provider-btn">
+              <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google" /> Google
+            </button>
+            <button id="login-discord" class="login-provider-btn">
+              <img src="https://img.icons8.com/ios-filled/50/7289DA/discord-logo.png" alt="Discord" /> Discord
+            </button>
+            <button id="login-cancel" class="login-cancel-btn">Cancel</button>
+          </div>
+        </div>
+      </header>
+      <section id="chat" class="chat-area"></section>
+      <div class="scroll-to-bottom" id="scroll-btn" title="Scroll to latest">
+        <i data-lucide="arrow-down-circle"></i>
       </div>
-    </header>
-
-    <main id="chat" class="chat-area"></main>
-
-    <div class="scroll-to-bottom" id="scroll-btn" title="Scroll to latest">
-      <i data-lucide="arrow-down-circle"></i>
-    </div>
-
-    <footer>
-      <textarea id="user-input" placeholder="Write a message..." rows="1"></textarea>
-      <button id="send-btn" title="Send"><i data-lucide="send"></i></button>
-      <button id="stop-btn" title="Stop" style="display:none;"><i data-lucide="square"></i></button>
-    </footer>
+      <footer>
+        <textarea id="user-input" placeholder="Type your message..." rows="1"></textarea>
+        <button id="send-btn" title="Send"><i data-lucide="send"></i></button>
+        <button id="stop-btn" title="Stop" style="display:none;"><i data-lucide="square"></i></button>
+      </footer>
+    </main>
   </div>
-
   <script src="script2.js" defer></script>
 </body>
 </html>
