@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,18 +15,20 @@
   <div class="header">
     <div class="logo">🤖 Fall AI</div>
     <div class="auth-buttons">
-      <button id="login-google" title="Login with Google"><i class="fab fa-google"></i></button>
-      <button id="login-discord" title="Login with Discord"><i class="fab fa-discord"></i></button>
+      <button id="google-login-btn" title="Login mit Google"><i class="fab fa-google"></i></button>
+      <button id="discord-login-btn" title="Login mit Discord"><i class="fab fa-discord"></i></button>
       <button id="logout-btn" title="Logout" style="display:none;"><i class="fas fa-sign-out-alt"></i></button>
     </div>
     <span id="username">Guest</span>
   </div>
 
-  <div id="chat" class="chat"></div>
-
-  <div id="scroll-to-end" title="Scroll to bottom">
-    <i class="fas fa-arrow-down"></i>
+  <div id="chat-container">
+    <div id="chat"></div>
   </div>
+
+  <button id="scroll-down-btn" title="Scroll to bottom" style="display:none;">
+    <i class="fas fa-arrow-down"></i>
+  </button>
 
   <div class="input-area">
     <textarea id="user-input" rows="1" placeholder="Type a message..."></textarea>
