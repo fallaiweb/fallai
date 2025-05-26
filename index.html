@@ -2,50 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fall AI Chat</title>
   <link rel="stylesheet" href="style2.css" />
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>Fall AI Chat</h1>
-      <div class="auth-buttons">
-        <button id="google-login-btn">
-          <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" />
-        </button>
-        <button id="discord-login-btn">
-          <img src="https://cdn.jsdelivr.net/gh/PKief/vscode-material-icon-theme/icons/discord.svg" alt="Discord Logo" />
-        </button>
-        <button id="logout-btn" style="display: none;">
-          <i class="fas fa-sign-out-alt"></i>
-        </button>
-      </div>
-      <span id="username">Guest</span>
-    </header>
-    <main id="chat-container">
-      <div id="chat"></div>
-      <button id="scroll-down-btn" style="display: none;">
-        <i class="fas fa-arrow-down"></i>
-      </button>
-    </main>
-    <footer>
-      <input type="text" id="user-input" placeholder="Type your message..." />
-      <button id="send-btn">
-        <i class="fas fa-paper-plane"></i>
-      </button>
-      <button id="stop-btn" style="display: none;">
-        <i class="fas fa-stop"></i>
-      </button>
-      <button id="reset-chat-btn">
-        <i class="fas fa-sync-alt"></i>
-      </button>
-    </footer>
+  <div class="header">
+    <div class="logo">🤖 Fall AI</div>
+    <div class="auth-buttons">
+      <button id="login-google" title="Login with Google"><i class="fab fa-google"></i></button>
+      <button id="login-discord" title="Login with Discord"><i class="fab fa-discord"></i></button>
+      <button id="logout-btn" title="Logout" style="display:none;"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+    <span id="username">Guest</span>
   </div>
+
+  <div id="chat" class="chat"></div>
+
+  <div id="scroll-to-end" title="Scroll to bottom">
+    <i class="fas fa-arrow-down"></i>
+  </div>
+
+  <div class="input-area">
+    <textarea id="user-input" rows="1" placeholder="Type a message..."></textarea>
+    <button id="send-btn" title="Send"><i class="fas fa-paper-plane"></i></button>
+    <button id="stop-btn" title="Stop" style="display:none;"><i class="fas fa-stop"></i></button>
+    <button id="reset-chat-btn" title="Reset chat"><i class="fas fa-eraser"></i></button>
+  </div>
+
   <script src="script2.js"></script>
 </body>
 </html>
