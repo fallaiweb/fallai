@@ -53,7 +53,9 @@ async function typeMessage(bubble, fullText) {
   bubble.innerHTML = "";
   let i = 0;
   isTyping = true;
+  shouldStopTyping = false;
   stopButton.style.display = "inline-block";
+  stopButton.textContent = "⏹ Stop";
 
   while (i < fullText.length && !shouldStopTyping) {
     if (fullText.slice(i, i + 3) === "```") {
@@ -80,6 +82,8 @@ async function typeMessage(bubble, fullText) {
   isTyping = false;
   shouldStopTyping = false;
   stopButton.style.display = "none";
+  stopButton.textContent = "⏹ Stop";
+  stopButton.disabled = false;
 }
 
 async function sendMessage() {
@@ -160,6 +164,7 @@ window.addEventListener("resize", () => {
 });
 
 window.addEventListener("DOMContentLoaded", () => {
+  chatWindow.innerHTML = ""; // Optional: Verlauf zurücksetzen bei jedem Laden
   chatHistory.forEach((msg) => addMessage(msg.role, msg.content));
   chatWindow.scrollTop = chatWindow.scrollHeight;
 });
