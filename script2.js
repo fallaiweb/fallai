@@ -1,292 +1,104 @@
-// ==== Provider IDs (hier eintragen) ====
-const GOOGLE_CLIENT_ID = "430741103805-r80p5k14p9e66srupo4jvdle4pen1fqb.apps.googleusercontent.com";
+// ==== Konfiguration (HIER EINTRAGEN) ====
+const GROQ_API_KEY = "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";
 const DISCORD_CLIENT_ID = "1376180153654448180";
-const DISCORD_REDIRECT_URI = "https://fallai.netlify.app/auth/callback"; // z.B. https://deine-domain.de
-// ==== Ende Provider IDs ====
+const GOOGLE_CLIENT_ID = "430741103805-r80p5k14p9e66srupo4jvdle4pen1fqb.apps.googleusercontent.com";
+const REDIRECT_URI = "https://fallai.netlify.app"; // Für Production
 
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyAPf_EoIxzFhArc83GBaIy7h--2Kye0T3E",
-  authDomain: "fallai-e4e92.firebaseapp.com",
-  projectId: "fallai-e4e92",
-  storageBucket: "fallai-e4e92.appspot.com",
-  messagingSenderId: "1015085978833",
-  appId: "1:1015085978833:web:3a51e6320a94c80bbc21f0"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-let user = { displayName: "Guest" };
-let currentUserId = null;
+// ==== AI Funktionen ====
 let abortController = null;
+let isTyping = false;
 
-const chat = document.getElementById('chat');
-const userInput = document.getElementById('user-input');
-const sendBtn = document.getElementById('send-btn');
-const stopBtn = document.getElementById('stop-btn');
-const scrollBtn = document.getElementById('scroll-btn');
-const loginBtn = document.getElementById('login-btn');
-const loginModal = document.getElementById('login-modal');
-const loginGoogle = document.getElementById('login-google');
-const loginDiscord = document.getElementById('login-discord');
-const loginCancel = document.getElementById('login-cancel');
-const logoutBtn = document.getElementById('logout-btn');
-const usernameSpan = document.getElementById('username');
-const resetBtn = document.getElementById('reset-chat-btn');
-
-// Login Modal Handling
-loginBtn.addEventListener('click', () => {
-  loginModal.classList.add('active');
-});
-loginCancel.addEventListener('click', () => {
-  loginModal.classList.remove('active');
-});
-loginModal.addEventListener('click', (e) => {
-  if (e.target === loginModal) loginModal.classList.remove('active');
-});
-
-loginGoogle.addEventListener('click', () => {
-  loginModal.classList.remove('active');
-  loginWithGoogle();
-});
-loginDiscord.addEventListener('click', () => {
-  loginModal.classList.remove('active');
-  loginWithDiscord();
-});
-
-logoutBtn.addEventListener('click', handleLogout);
-resetBtn.addEventListener('click', resetChat);
-sendBtn.addEventListener('click', handleSend);
-stopBtn.addEventListener('click', handleStop);
-scrollBtn.addEventListener('click', () => chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" }));
-chat.addEventListener('scroll', () => {
-  scrollBtn.style.display = chat.scrollTop + chat.clientHeight < chat.scrollHeight - 100 ? "flex" : "none";
-});
-
-// Dynamisches Textarea-Resizing & Enter/Shift+Enter Handling
-userInput.addEventListener('input', autoResizeTextarea);
-userInput.addEventListener('keydown', function(e) {
-  if (e.key === "Enter") {
-    if (e.shiftKey) {
-      // Neue Zeile
-      return;
-    } else {
-      e.preventDefault();
-      handleSend();
-    }
-  }
-});
-
-function autoResizeTextarea() {
-  userInput.style.height = 'auto';
-  const maxHeight = 130; // ca. 5 Zeilen
-  if (userInput.scrollHeight > maxHeight) {
-    userInput.style.height = maxHeight + "px";
-    userInput.style.overflowY = "auto";
-  } else {
-    userInput.style.height = userInput.scrollHeight + "px";
-    userInput.style.overflowY = "hidden";
-  }
-}
-autoResizeTextarea();
-
-function loginWithGoogle() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  // Optional: Provider-ID setzen
-  if (GOOGLE_CLIENT_ID) provider.setCustomParameters({ client_id: GOOGLE_CLIENT_ID });
-  auth.signInWithPopup(provider).then(result => {
-    user = result.user;
-    currentUserId = user.uid;
-    usernameSpan.textContent = user.displayName;
-    loginBtn.style.display = 'none';
-    logoutBtn.style.display = 'inline-block';
-    loadChat();
-  });
-}
-
-function loginWithDiscord() {
-  // ACHTUNG: Discord OIDC muss in Firebase Console eingerichtet sein!
-  const provider = new firebase.auth.OAuthProvider('oidc.discord');
-  if (DISCORD_CLIENT_ID && DISCORD_REDIRECT_URI) {
-    provider.setCustomParameters({
-      client_id: DISCORD_CLIENT_ID,
-      redirect_uri: DISCORD_REDIRECT_URI
-    });
-  }
-  auth.signInWithPopup(provider).then(result => {
-    user = result.user;
-    currentUserId = user.uid;
-    usernameSpan.textContent = user.displayName;
-    loginBtn.style.display = 'none';
-    logoutBtn.style.display = 'inline-block';
-    loadChat();
-  });
-}
-
-function handleLogout() {
-  auth.signOut().then(() => {
-    user = { displayName: "Guest" };
-    currentUserId = null;
-    usernameSpan.textContent = "Guest";
-    loginBtn.style.display = 'inline-flex';
-    logoutBtn.style.display = 'none';
-    clearChatUI();
-  });
-}
-
-function handleSend() {
-  const message = userInput.value.trim();
-  if (!message) return;
-
-  appendMessage("user", message);
-  userInput.value = "";
-  autoResizeTextarea();
-  toggleButtons(true);
-
-  // "Fall AI is thinking..." anzeigen
-  showThinking();
+async function sendToAI(message) {
+  const chat = document.getElementById('chat');
+  const typingIndicator = document.createElement('div');
+  typingIndicator.className = 'message bot typing-animation';
+  typingIndicator.textContent = 'Fall AI denkt nach';
+  chat.appendChild(typingIndicator);
+  chat.scrollTop = chat.scrollHeight;
 
   abortController = new AbortController();
-  let botMsg = "";
-
-  fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": "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",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: "llama3-70b-8192",
-      messages: [
-        { role: "system", content: "You are Fall AI, a helpful assistant." },
-        { role: "user", content: message }
-      ],
-      stream: true
-    }),
-    signal: abortController.signal
-  }).then(response => {
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-
-    const read = () => reader.read().then(({ value, done }) => {
-      if (done) {
-        finishTyping(botMsg);
-        toggleButtons(false);
-        saveChat({ role: "user", content: message });
-        saveChat({ role: "bot", content: botMsg });
-        return;
-      }
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split("\n").filter(line => line.trim() !== "");
-      for (const line of lines) {
-        if (line.startsWith("data:")) {
-          const data = line.replace("data: ", "");
-          if (data === "[DONE]") return;
-          try {
-            const parsed = JSON.parse(data);
-            const token = parsed.choices?.[0]?.delta?.content;
-            if (token) {
-              botMsg += token;
-              updateBotTyping(botMsg);
-            }
-          } catch (e) {}
-        }
-      }
-      return read();
+  
+  try {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${GROQ_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "llama3-70b-8192",
+        messages: [{ role: "user", content: message }],
+        stream: true
+      }),
+      signal: abortController.signal
     });
 
-    return read();
-  }).catch(error => {
-    if (error.name === "AbortError") {
-      finishTyping("(Answer canceled)");
-    } else {
-      finishTyping("An error occurred.");
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullResponse = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n');
+      
+      for (const line of lines) {
+        if (line.startsWith('data:')) {
+          const data = JSON.parse(line.replace('data: ', ''));
+          const content = data.choices[0]?.delta?.content;
+          if (content) {
+            fullResponse += content;
+            updateTypingIndicator(fullResponse);
+          }
+        }
+      }
     }
-    toggleButtons(false);
-  });
-}
 
-function handleStop() {
-  if (abortController) {
-    abortController.abort();
+    typingIndicator.remove();
+    addMessage('bot', fullResponse);
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      addMessage('bot', 'Antwort abgebrochen');
+    } else {
+      addMessage('bot', 'Fehler: ' + err.message);
+    }
   }
 }
 
-function appendMessage(role, content) {
-  if (typingEl && role === "bot") {
-    typingEl.remove();
-    typingEl = null;
-  }
-  const msg = document.createElement("div");
+// ==== UI Funktionen ====
+document.getElementById('send-btn').addEventListener('click', async () => {
+  const input = document.getElementById('user-input');
+  const message = input.value.trim();
+  if (!message) return;
+
+  addMessage('user', message);
+  input.value = '';
+  await sendToAI(message);
+});
+
+// ==== Login System (Discord Beispiel) ====
+document.getElementById('login-discord').addEventListener('click', () => {
+  window.location.href = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=identify`;
+});
+
+// ==== Hilfsfunktionen ====
+function addMessage(role, content) {
+  const chat = document.getElementById('chat');
+  const msg = document.createElement('div');
   msg.className = `message ${role}`;
   msg.textContent = content;
   chat.appendChild(msg);
   chat.scrollTop = chat.scrollHeight;
 }
 
-let typingEl = null;
-function showThinking() {
-  if (typingEl) typingEl.remove();
-  typingEl = document.createElement("div");
-  typingEl.className = "message bot";
-  typingEl.innerHTML = '<em>Fall AI is thinking...</em>';
-  chat.appendChild(typingEl);
-  chat.scrollTop = chat.scrollHeight;
-}
-
-function updateBotTyping(text) {
-  if (!typingEl) showThinking();
-  typingEl.innerHTML = `<em>Fall AI is thinking...</em><br><span id="typing-text"></span>`;
-  const typingSpan = typingEl.querySelector("#typing-text");
-  typingSpan.textContent = text;
-  chat.scrollTop = chat.scrollHeight;
-}
-
-function finishTyping(text) {
-  if (typingEl) typingEl.remove();
-  appendMessage("bot", text);
-}
-
-function toggleButtons(loading) {
-  sendBtn.style.display = loading ? "none" : "inline-block";
-  stopBtn.style.display = loading ? "inline-block" : "none";
-}
-
-function saveChat(msg) {
-  if (!currentUserId) return;
-  db.collection("chats").doc(currentUserId).collection("messages").add({
-    ...msg,
-    timestamp: Date.now()
-  });
-}
-
-function loadChat() {
-  if (!currentUserId) return;
-  clearChatUI();
-  db.collection("chats").doc(currentUserId).collection("messages").orderBy("timestamp").get()
-    .then(snapshot => snapshot.forEach(doc => {
-      const msg = doc.data();
-      appendMessage(msg.role, msg.content);
-    }));
-}
-
-function clearChatUI() {
-  chat.innerHTML = "";
-}
-
-function resetChat() {
-  if (!currentUserId) {
-    clearChatUI();
-    return;
+function updateTypingIndicator(text) {
+  const typingIndicator = document.querySelector('.typing-animation');
+  if (typingIndicator) {
+    typingIndicator.textContent = text;
   }
-  const messagesRef = db.collection("chats").doc(currentUserId).collection("messages");
-  messagesRef.get().then(snapshot => {
-    const batch = db.batch();
-    snapshot.forEach(doc => batch.delete(doc.ref));
-    batch.commit().then(clearChatUI);
-  });
 }
 
+// Lucide Icons initialisieren
 lucide.createIcons();
