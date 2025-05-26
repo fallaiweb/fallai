@@ -26,11 +26,11 @@
         <div class="user-info" id="user-info">
           <span id="username">Guest</span>
           <img id="user-avatar" src="" alt="avatar" style="display:none;">
-          <button id="login-btn" class="auth-btn">
+          <button id="login-btn" class="plain-auth-btn">
             <span class="login-btn-icon"><i data-lucide="user"></i></span>
             <span class="login-btn-text">Login</span>
           </button>
-          <button id="logout-btn" class="auth-btn" style="display:none;">
+          <button id="logout-btn" class="plain-auth-btn" style="display:none;">
             <span class="login-btn-icon"><i data-lucide="log-out"></i></span>
             <span class="login-btn-text">Logout</span>
           </button>
@@ -53,6 +53,8 @@
         <i data-lucide="arrow-down-circle"></i>
       </div>
       <footer>
+        <input type="file" id="file-input" multiple style="display:none;">
+        <button id="file-btn" title="Upload file"><i data-lucide="paperclip"></i> File</button>
         <textarea id="user-input" placeholder="Type your message..." rows="1"></textarea>
         <button id="send-btn" title="Send"><i data-lucide="send"></i></button>
         <button id="stop-btn" title="Stop" style="display:none;"><i data-lucide="square"></i></button>
