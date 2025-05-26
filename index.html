@@ -26,7 +26,6 @@
         <div class="user-info" id="user-info">
           <span id="username">Pinkie Guest</span>
           <img id="user-avatar" src="" alt="avatar" style="display:none" />
-          </button>
           <button id="login-btn" class="plain-auth-btn">
             <span class="login-btn-icon"><i data-lucide="user"></i></span>
             <span class="login-btn-text">Login</span>
@@ -39,9 +38,19 @@
             <span class="login-btn-icon"><i data-lucide="trash-2"></i></span>
           </button>
         </div>
-        <!-- Phone Login Modal (hidden by default) -->
-
-        <!-- (You can keep your Google/Discord modal here as well if you want) -->
+        <!-- Login Modal is hidden by default! -->
+        <div id="login-modal" class="login-modal">
+          <div class="login-modal-content">
+            <span class="login-modal-title">Login with</span>
+            <button id="login-google" class="login-provider-btn">
+              <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google" /> Google
+            </button>
+            <button id="login-discord" class="login-provider-btn">
+              <img src="https://img.icons8.com/ios-filled/50/7289DA/discord-logo.png" alt="Discord" /> Discord
+            </button>
+            <button id="login-cancel" class="login-cancel-btn">Cancel</button>
+          </div>
+        </div>
       </header>
       <section id="chat" class="chat-area"></section>
       <div class="scroll-to-bottom" id="scroll-btn" title="Scroll to latest">
