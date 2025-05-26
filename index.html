@@ -24,8 +24,12 @@
       <header>
         <h1>🍂 Fall AI</h1>
         <div class="user-info" id="user-info">
-          <span id="username">PinkieGuest</span>
+          <span id="username">Pinkie Guest</span>
           <img id="user-avatar" src="" alt="avatar" style="display:none" />
+          <button id="phone-login-btn" class="plain-auth-btn">
+            <span class="login-btn-icon"><i data-lucide="phone"></i></span>
+            <span class="login-btn-text">Phone</span>
+          </button>
           <button id="login-btn" class="plain-auth-btn">
             <span class="login-btn-icon"><i data-lucide="user"></i></span>
             <span class="login-btn-text">Login</span>
@@ -38,19 +42,19 @@
             <span class="login-btn-icon"><i data-lucide="trash-2"></i></span>
           </button>
         </div>
-        <!-- Login Modal is hidden by default! -->
-        <div id="login-modal" class="login-modal">
+        <!-- Phone Login Modal (hidden by default) -->
+        <div id="phone-modal" class="login-modal">
           <div class="login-modal-content">
-            <span class="login-modal-title">Login with</span>
-            <button id="login-google" class="login-provider-btn">
-              <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google" /> Google
-            </button>
-            <button id="login-discord" class="login-provider-btn">
-              <img src="https://img.icons8.com/ios-filled/50/7289DA/discord-logo.png" alt="Discord" /> Discord
-            </button>
-            <button id="login-cancel" class="login-cancel-btn">Cancel</button>
+            <span class="login-modal-title">Login with Phone</span>
+            <input id="phone-input" type="tel" placeholder="Phone number" style="width:170px; padding:7px; font-size:1rem; border-radius:6px; border:1px solid #444; background:#181818; color:#fff; margin-bottom:7px;">
+            <button id="send-code-btn" class="login-provider-btn">Send code</button>
+            <input id="code-input" type="text" placeholder="Code" maxlength="6" style="width:100px; padding:7px; font-size:1rem; border-radius:6px; border:1px solid #444; background:#181818; color:#fff; margin-bottom:7px; display:none;">
+            <button id="verify-code-btn" class="login-provider-btn" style="display:none;">Login</button>
+            <button id="phone-cancel-btn" class="login-cancel-btn">Cancel</button>
+            <div id="phone-login-msg" style="color:#e7a96f; font-size:0.95em; margin-top:4px;"></div>
           </div>
         </div>
+        <!-- (You can keep your Google/Discord modal here as well if you want) -->
       </header>
       <section id="chat" class="chat-area"></section>
       <div class="scroll-to-bottom" id="scroll-btn" title="Scroll to latest">
@@ -59,7 +63,7 @@
       <footer>
         <input type="file" id="file-input" multiple style="display:none" />
         <div id="file-preview"></div>
-        <button id="file-btn" title="Upload file" disabled><i data-lucide="paperclip"></i> File [Testing]</button>
+        <button id="file-btn" title="Upload file" disabled><i data-lucide="paperclip"></i> File</button>
         <textarea id="user-input" placeholder="Type your message..." rows="1"></textarea>
         <button id="send-btn" title="Send"><i data-lucide="send"></i></button>
         <button id="stop-btn" title="Stop" style="display:none"><i data-lucide="square"></i></button>
