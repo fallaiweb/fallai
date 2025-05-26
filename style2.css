@@ -7,10 +7,11 @@
 body {
   background: #1a1a1a;
   color: #fff;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   height: 100vh;
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 .app {
@@ -28,9 +29,10 @@ body {
 header {
   display: flex;
   justify-content: space-between;
-  padding: 1rem;
+  padding: 1rem 1.5rem;
   background: #181818;
   border-bottom: 1px solid #333;
+  align-items: center;
 }
 
 .user-info {
@@ -39,13 +41,40 @@ header {
   gap: 1rem;
 }
 
-#login-modal {
+#username {
+  font-size: 1rem;
+  color: #ccc;
+}
+
+button {
+  background: #2a2a2a;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.2s ease;
+}
+
+button:hover {
+  background: #444;
+}
+
+.login-modal {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   justify-content: center;
   align-items: center;
+  z-index: 1000;
+}
+
+.login-modal.active {
+  display: flex;
 }
 
 .login-modal-content {
@@ -55,76 +84,158 @@ header {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  min-width: 300px;
+  min-width: 320px;
+  text-align: center;
 }
 
-/* Chat */
+.login-modal-title {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.login-provider-btn {
+  background: #3a3a3a;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.login-provider-btn img {
+  width: 24px;
+  height: 24px;
+}
+
+.login-provider-btn:hover {
+  background: #555;
+}
+
+.login-cancel-btn {
+  background: none;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+  transition: color 0.2s ease;
+}
+
+.login-cancel-btn:hover {
+  color: white;
+}
+
+/* Chat Area */
 .chat-area {
   flex: 1;
-  padding: 1rem;
+  padding: 1rem 1.5rem;
   overflow-y: auto;
+  scroll-behavior: smooth;
 }
 
 .message {
-  background: #333;
-  padding: 0.8rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1rem;
   max-width: 80%;
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  white-space: pre-wrap;
+  line-height: 1.4;
+  word-wrap: break-word;
 }
 
 .message.user {
-  background: #2a2a2a;
+  background-color: #2a2a2a;
   margin-left: auto;
 }
 
+.message.bot {
+  background-color: #333;
+  margin-right: auto;
+}
+
+/* Typing animation */
 .typing-animation {
-  display: inline-block;
+  font-style: italic;
+  opacity: 0.7;
 }
 
 .typing-animation::after {
   content: '...';
-  animation: typing 1s infinite;
+  animation: dots 1.2s infinite steps(3);
 }
 
-@keyframes typing {
-  0%, 20% { content: '.'; }
-  40% { content: '..'; }
-  60%, 100% { content: '...'; }
+@keyframes dots {
+  0% { content: ''; }
+  33% { content: '.'; }
+  66% { content: '..'; }
+  100% { content: '...'; }
 }
 
-/* Input */
+/* Scroll to bottom button */
+.scroll-to-bottom {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  background: #2a2a2a;
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: none;
+  z-index: 999;
+  transition: background 0.2s ease;
+}
+
+.scroll-to-bottom:hover {
+  background: #444;
+}
+
+.scroll-to-bottom svg {
+  width: 24px;
+  height: 24px;
+  color: #ccc;
+}
+
+/* Footer */
 footer {
   display: flex;
   gap: 0.5rem;
-  padding: 1rem;
+  padding: 1rem 1.5rem;
   border-top: 1px solid #333;
+  background: #181818;
+  align-items: center;
 }
 
 textarea {
   flex: 1;
-  background: #333;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.8rem;
-  color: #fff;
+  min-height: 42px;
+  max-height: 130px;
   resize: none;
-  min-height: 45px;
-  max-height: 150px;
-}
-
-button {
-  background: #3a3a3a;
+  border-radius: 12px;
   border: none;
-  color: #fff;
-  padding: 0.8rem 1rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #2a2a2a;
+  color: white;
+  font-size: 1rem;
+  overflow-y: auto;
+  transition: height 0.1s ease;
+  scrollbar-width: thin;
+  scrollbar-color: #666 #222;
 }
 
-button:hover {
-  background: #4a4a4a;
+textarea::-webkit-scrollbar {
+  width: 8px;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+textarea::-webkit-scrollbar-track {
+  background: #222;
 }
