@@ -1,7 +1,10 @@
 const GROQ_API_KEY = "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";
 const MODEL = "llama3-8b-8192";
 
-let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
+// Verlaufsdaten bei jedem Neuladen löschen
+localStorage.removeItem("chatHistory");
+
+let chatHistory = [];
 let isTyping = false;
 let shouldStopTyping = false;
 
@@ -125,7 +128,6 @@ async function sendMessage() {
 
     if (aiText) {
       chatHistory.push({ role: "assistant", content: aiText });
-      localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
       await typeMessage(aiBubble, aiText.trim());
     } else {
       aiBubble.textContent = "⚠️ API Error: " + (data.error?.message || "Keine Antwort erhalten.");
@@ -164,7 +166,7 @@ window.addEventListener("resize", () => {
 });
 
 window.addEventListener("DOMContentLoaded", () => {
-  chatWindow.innerHTML = ""; // Optional: Verlauf zurücksetzen bei jedem Laden
-  chatHistory.forEach((msg) => addMessage(msg.role, msg.content));
+  // Verlauf gelöscht durch removeItem oben
+  chatWindow.innerHTML = "";
   chatWindow.scrollTop = chatWindow.scrollHeight;
 });
