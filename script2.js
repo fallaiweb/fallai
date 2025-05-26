@@ -473,7 +473,7 @@ async function sendToAI(message) {
     if (codeContext) {
       messagesPayload.push(
         { role: "user", content: codeContext },
-        { role: "assistant", content: codeContext[1] }
+        { role: "assistant", content: codeContext }
       );
     }
   }
