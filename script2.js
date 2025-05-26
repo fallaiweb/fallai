@@ -29,7 +29,7 @@ let abortController = null;
 let typingEl = null;
 let pendingFiles = [];
 
-// --- Markdown rendering, copyable code blocks ---
+// Markdown rendering and code block copy support
 function appendMessage(role, content, log = true) {
   if (typingEl && role === "bot") {
     typingEl.remove();
@@ -63,7 +63,7 @@ function appendMessage(role, content, log = true) {
   }
 }
 
-// --- Utility ---
+// Utility Functions
 function logToDiscord(action, description, user = null) {
   const embed = {
     title: action,
@@ -95,6 +95,32 @@ function updateUIForUser(user) {
   loadChatHistory();
 }
 
+// Login/Logout/Modal code
+loginBtn.addEventListener("click", () => loginModal.classList.add("active"));
+loginCancelBtn.addEventListener("click", () => loginModal.classList.remove("active"));
+loginModal.addEventListener("click", (e) => {
+  if (e.target === loginModal) loginModal.classList.remove("active");
+});
+loginGoogleBtn.addEventListener("click", () => {
+  loginModal.classList.remove("active");
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    response_type: "token",
+    scope: "openid profile email",
+  });
+  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+});
+loginDiscordBtn.addEventListener("click", () => {
+  loginModal.classList.remove("active");
+  const params = new URLSearchParams({
+    client_id: DISCORD_CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    response_type: "token",
+    scope: "identify email",
+  });
+  window.location.href = `https://discord.com/api/oauth2/authorize?${params.toString()}`;
+});
 logoutBtn.addEventListener("click", () => {
   const user = JSON.parse(localStorage.getItem("user_data"));
   logToDiscord("Logout", "User logged out.", user);
@@ -107,7 +133,7 @@ logoutBtn.addEventListener("click", () => {
   updateFileBtnState();
 });
 
-// --- Confirm Modal for Clear Chat ---
+// Confirm Modal for Clear Chat
 clearBtn.addEventListener("click", () => {
   confirmModal.classList.add("active");
   lucide.createIcons({ icons: ["alert-triangle"] });
@@ -128,16 +154,68 @@ confirmModal.addEventListener("click", (e) => {
   if (e.target === confirmModal) confirmModal.classList.remove("active");
 });
 
-// --- User/Chat Storage ---
+// OAuth token handling
+function handleOAuthRedirect() {
+  if (window.location.hash) {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get("access_token");
+    if (accessToken) {
+      fetch("https://discord.com/api/users/@me", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+        .then((res) => (res.ok ? res.json() : Promise.reject()))
+        .then((user) => {
+          saveUser({
+            id: user.id,
+            name: `${user.username}#${user.discriminator}`,
+            avatar: user.avatar
+              ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+              : "https://cdn.discordapp.com/embed/avatars/0.png",
+            provider: "discord",
+          });
+        })
+        .catch(() => {
+          fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          })
+            .then((res) => res.json())
+            .then((user) => {
+              saveUser({
+                id: user.sub || user.email || user.name,
+                name: user.name,
+                avatar: user.picture,
+                provider: "google",
+              });
+            })
+            .catch(() => alert("Login failed."));
+        });
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  } else {
+    const user = JSON.parse(localStorage.getItem("user_data"));
+    if (user) updateUIForUser(user);
+  }
+}
+
+function saveUser(user) {
+  localStorage.setItem("user_data", JSON.stringify(user));
+  updateUIForUser(user);
+  logToDiscord("Login", `User logged in via ${user.provider}.`, user);
+}
+
 function getUserId() {
   const user = JSON.parse(localStorage.getItem("user_data"));
   if (!user) return null;
-  return user.provider + "_" + user.id;
+  if (user.provider === "discord") return "discord_" + user.id;
+  if (user.provider === "google") return "google_" + user.id;
+  return null;
 }
+
 function getChatStorageKey() {
   const id = getUserId();
   return id ? `chat_history_${id}` : null;
 }
+
 function saveChatHistory() {
   const key = getChatStorageKey();
   if (!key) return;
@@ -159,6 +237,7 @@ function saveChatHistory() {
   });
   localStorage.setItem(key, JSON.stringify(messages));
 }
+
 function loadChatHistory() {
   const key = getChatStorageKey();
   if (!key) return;
@@ -172,11 +251,12 @@ function loadChatHistory() {
     }
   }
 }
+
 function clearChatUI() {
   chat.innerHTML = "";
 }
 
-// --- File upload preview ---
+// File upload preview
 fileBtn.addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", () => {
   pendingFiles = [];
@@ -204,11 +284,16 @@ function removePendingFile(idx) {
   if (pendingFiles.length === 0) fileInput.value = "";
 }
 
-// --- "More of that" feature ---
+// "More of that" feature
 function isMoreOfThatTrigger(text) {
   const triggers = [
-    "more of that", "please more", "more please", "bitte mehr davon",
-    "mehr davon", "noch mehr davon", "mehr bitte"
+    "more of that",
+    "please more",
+    "more please",
+    "bitte mehr davon",
+    "mehr davon",
+    "noch mehr davon",
+    "mehr bitte"
   ];
   const normalized = text.trim().toLowerCase();
   return triggers.some(trigger => normalized === trigger);
@@ -227,7 +312,7 @@ function getLastAIMessage() {
   return null;
 }
 
-// --- File block for file uploads ---
+// File block for file uploads
 function appendFileBlock(role, filename, content, log = true) {
   const block = document.createElement("div");
   block.className = "file-block";
@@ -267,7 +352,7 @@ function appendFileBlock(role, filename, content, log = true) {
   }
 }
 
-// --- Kontext für Code-Verbesserung ---
+// Context-aware code improvement
 function getRecentCodeContext() {
   const messages = Array.from(chat.querySelectorAll(".message.user, .message.bot"));
   let lastUserCode = null, lastBotReply = null;
@@ -284,7 +369,7 @@ function getRecentCodeContext() {
   return lastUserCode && lastBotReply ? [lastUserCode, lastBotReply] : null;
 }
 
-// --- Chat sending logic ---
+// Chat sending logic
 sendBtn.addEventListener("click", handleSend);
 stopBtn.addEventListener("click", handleStop);
 userInput.addEventListener("keydown", (e) => {
@@ -365,7 +450,7 @@ function handleStop() {
   }
 }
 
-// --- AI streaming response with context ---
+// AI streaming response with context
 async function sendToAI(message) {
   showThinking();
   abortController = new AbortController();
@@ -470,7 +555,7 @@ function toggleButtons(loading) {
   stopBtn.style.display = loading ? "inline-flex" : "none";
 }
 
-// --- Scroll button ---
+// Scroll button
 scrollBtn.addEventListener("click", () => {
   chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" });
 });
@@ -479,12 +564,11 @@ chat.addEventListener("scroll", () => {
     chat.scrollTop + chat.clientHeight < chat.scrollHeight - 100 ? "flex" : "none";
 });
 
-// --- Init icons ---
+// Init icons
 lucide.createIcons();
 
-// --- On load ---
+// On load
 window.addEventListener("load", () => {
+  handleOAuthRedirect();
   updateFileBtnState();
-  const user = JSON.parse(localStorage.getItem("user_data"));
-  if (user) updateUIForUser(user);
 });
