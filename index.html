@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Fall AI</title>
   <link rel="stylesheet" href="style2.css" />
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
   <div class="app">
@@ -16,38 +12,27 @@
       <h1>Fall AI</h1>
       <div class="user-info">
         <span id="username">Guest</span>
-        <button id="login-btn" title="Login"><i data-lucide="user"></i> Login</button>
-        <button id="logout-btn" title="Logout"><i data-lucide="log-out"></i></button>
-        <button id="reset-chat-btn" title="Reset Chat"><i data-lucide="trash-2"></i></button>
+        <button id="login-btn" title="Login">Login</button>
+        <button id="logout-btn" title="Logout" style="display:none;">Logout</button>
       </div>
       <!-- Login Modal -->
       <div id="login-modal" class="login-modal">
         <div class="login-modal-content">
-          <span class="login-modal-title">Login with</span>
-          <button id="login-google" class="login-provider-btn">
-            <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google"/> Google
-          </button>
+          <span class="login-modal-title">Login mit</span>
           <button id="login-discord" class="login-provider-btn">
             <img src="https://img.icons8.com/ios-filled/50/7289DA/discord-logo.png" alt="Discord"/> Discord
           </button>
+          <!-- Google-Button kann hier auch eingefügt werden -->
           <button id="login-cancel" class="login-cancel-btn">Abbrechen</button>
         </div>
       </div>
     </header>
-
     <main id="chat" class="chat-area"></main>
-
-    <div class="scroll-to-bottom" id="scroll-btn" title="Scroll to latest">
-      <i data-lucide="arrow-down-circle"></i>
-    </div>
-
     <footer>
       <textarea id="user-input" rows="1" placeholder="Type your message..."></textarea>
-      <button id="send-btn" title="Send"><i data-lucide="send"></i></button>
-      <button id="stop-btn" title="Stop"><i data-lucide="square"></i></button>
+      <button id="send-btn" title="Send">Send</button>
     </footer>
   </div>
-
   <script src="script2.js" defer></script>
 </body>
 </html>
