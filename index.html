@@ -1,37 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>🍂 Fall AI Web Chat</title>
-  <link rel="stylesheet" href="style2.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <title>Fall AI</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main>
-    <section class="chat-section" id="chat-section">
-      <div class="chat-header">
-        <div class="header-left">
-          <img src="https://cdn.discordapp.com/avatars/1376180153654448180/8480b484883b0cf5f0db39ee90405fd7.webp?size=1024" class="avatar" alt="Fall AI">
-          <h1><span class="emoji">🍂</span> <span class="title">Fall AI Web Chat</span></h1>
-        </div>
-        <div class="header-right">
-          <button id="stop-button" style="display: none;">⛔ Stop</button>
-        </div>
-      </div>
-      <div class="chat-window" id="chat-window"></div>
-      <form id="chat-form" autocomplete="off">
-        <textarea id="user-input" placeholder="Type your message..." autocomplete="off" required></textarea>
-        <button type="submit">Send</button>
-      </form>
-      <div class="footer-link">
-        <a href="https://fallai.netlify.app" target="_blank">🍂 Fall AI ~ fallai.netlify.app 🍂</a>
-      </div>
-      <div class="note"></div>
-    </section>
+  <header>
+    <h1>Fall AI</h1>
+    <div id="user-controls">
+      <span id="username">Guest</span>
+      <button id="login-btn">Login</button>
+      <button id="logout-btn" style="display: none;">Logout</button>
+      <button id="reset-chat-btn">Reset Chat</button>
+    </div>
+  </header>
+
+  <main id="chat-container">
+    <div id="chat"></div>
+    <div id="input-area">
+      <textarea id="user-input" placeholder="Nachricht eingeben..."></textarea>
+      <button id="send-btn">Send</button>
+      <button id="stop-btn" style="display: none;">Stop</button>
+    </div>
   </main>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script src="script2.js"></script>
+
+  <script type="module" src="script.js"></script>
 </body>
 </html>
