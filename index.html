@@ -1,41 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fall AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fall AI Chat</title>
   <link rel="stylesheet" href="style2.css" />
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <div class="app">
-    <header>
-      <h1>Fall AI</h1>
-      <div class="user-info">
-        <span id="username">Guest</span>
-        <button id="login-google" title="Login with Google"><img src="https://img.icons8.com/color/48/google-logo.png"/></button>
-        <button id="login-discord" title="Login with Discord"><img src="https://img.icons8.com/ios-filled/50/7289DA/discord-logo.png"/></button>
-        <button id="logout-btn" title="Logout"><i data-lucide="log-out"></i></button>
-        <button id="reset-chat-btn" title="Reset Chat"><i data-lucide="trash-2"></i></button>
-      </div>
-    </header>
-
-    <main id="chat" class="chat-area"></main>
-
-    <div class="scroll-to-bottom" id="scroll-btn" title="Scroll to latest">
-      <i data-lucide="arrow-down-circle"></i>
+  <div class="header">
+    <div class="logo">🍂 Fall AI</div>
+    <div class="auth-buttons">
+      <button id="google-login-btn" title="Login mit Google"><i class="fab fa-google"></i></button>
+      <button id="discord-login-btn" title="Login mit Discord"><i class="fab fa-discord"></i></button>
+      <button id="logout-btn" title="Logout" style="display:none;"><i class="fas fa-sign-out-alt"></i></button>
     </div>
-
-    <footer>
-      <textarea id="user-input" placeholder="Type your message..."></textarea>
-      <button id="send-btn" title="Send"><i data-lucide="send"></i></button>
-      <button id="stop-btn" title="Stop"><i data-lucide="square"></i></button>
-    </footer>
+    <span id="username">Guest</span>
   </div>
 
-  <script src="script2.js" defer></script>
+  <div id="chat-container">
+    <div id="chat"></div>
+  </div>
+
+  <button id="scroll-down-btn" title="Scroll to bottom" style="display:none;">
+    <i class="fas fa-arrow-down"></i>
+  </button>
+
+  <div class="input-area">
+    <textarea id="user-input" rows="1" placeholder="Type a message..."></textarea>
+    <button id="send-btn" title="Send"><i class="fas fa-paper-plane"></i></button>
+    <button id="stop-btn" title="Stop" style="display:none;"><i class="fas fa-stop"></i></button>
+    <button id="reset-chat-btn" title="Reset chat"><i class="fas fa-eraser"></i></button>
+  </div>
+
+  <script src="script2.js"></script>
 </body>
 </html>
