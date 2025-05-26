@@ -16,10 +16,22 @@
       <h1>Fall AI</h1>
       <div class="user-info">
         <span id="username">Guest</span>
-        <button id="login-google" title="Login with Google"><img src="https://img.icons8.com/color/48/google-logo.png"/></button>
-        <button id="login-discord" title="Login with Discord"><img src="https://img.icons8.com/ios-filled/50/7289DA/discord-logo.png"/></button>
+        <button id="login-btn" title="Login"><i data-lucide="user"></i> Login</button>
         <button id="logout-btn" title="Logout"><i data-lucide="log-out"></i></button>
         <button id="reset-chat-btn" title="Reset Chat"><i data-lucide="trash-2"></i></button>
+      </div>
+      <!-- Login Modal -->
+      <div id="login-modal" class="login-modal">
+        <div class="login-modal-content">
+          <span class="login-modal-title">Login with</span>
+          <button id="login-google" class="login-provider-btn">
+            <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google"/> Google
+          </button>
+          <button id="login-discord" class="login-provider-btn">
+            <img src="https://img.icons8.com/ios-filled/50/7289DA/discord-logo.png" alt="Discord"/> Discord
+          </button>
+          <button id="login-cancel" class="login-cancel-btn">Abbrechen</button>
+        </div>
       </div>
     </header>
 
