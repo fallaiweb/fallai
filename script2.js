@@ -1,9 +1,5 @@
+// --- Constants and selectors ---
 const GROQ_API_KEY = "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";
-const DISCORD_CLIENT_ID = "1376180153654448180";
-const GOOGLE_CLIENT_ID = "430741103805-r80p5k14p9e66srupo4jvdle4pen1fqb.apps.googleusercontent.com";
-const REDIRECT_URI = "https://fallai.netlify.app";
-const DISCORD_WEBHOOK = "https://ptb.discord.com/api/webhooks/1376582619294208122/No5f6xr5L6e4c3ZFNL6YbIoP7MnSFw6X_0YBG7s7jjeej6Mhlu-yd2gPJ_tmUFu2tIF2";
-
 const chat = document.getElementById("chat");
 const userInput = document.getElementById("user-input");
 const sendBtn = document.getElementById("send-btn");
@@ -13,10 +9,6 @@ const loginBtn = document.getElementById("login-btn");
 const logoutBtn = document.getElementById("logout-btn");
 const usernameSpan = document.getElementById("username");
 const userAvatar = document.getElementById("user-avatar");
-const loginModal = document.getElementById("login-modal");
-const loginGoogleBtn = document.getElementById("login-google");
-const loginDiscordBtn = document.getElementById("login-discord");
-const loginCancelBtn = document.getElementById("login-cancel");
 const fileBtn = document.getElementById("file-btn");
 const fileInput = document.getElementById("file-input");
 const filePreview = document.getElementById("file-preview");
@@ -25,11 +17,84 @@ const confirmModal = document.getElementById("confirm-modal");
 const confirmYes = document.getElementById("confirm-yes");
 const confirmNo = document.getElementById("confirm-no");
 
+// Phone login selectors
+const phoneModal = document.getElementById("phone-modal");
+const phoneLoginBtn = document.getElementById("phone-login-btn");
+const phoneInput = document.getElementById("phone-input");
+const sendCodeBtn = document.getElementById("send-code-btn");
+const codeInput = document.getElementById("code-input");
+const verifyCodeBtn = document.getElementById("verify-code-btn");
+const phoneCancelBtn = document.getElementById("phone-cancel-btn");
+const phoneLoginMsg = document.getElementById("phone-login-msg");
+
 let abortController = null;
 let typingEl = null;
 let pendingFiles = [];
+let generatedCode = null;
+let enteredPhone = null;
 
-// Markdown rendering and code block copy support
+// --- Phone Login Logic (Demo, no real SMS!) ---
+phoneLoginBtn.addEventListener("click", () => {
+  phoneModal.classList.add("active");
+  phoneInput.value = "";
+  codeInput.value = "";
+  codeInput.style.display = "none";
+  verifyCodeBtn.style.display = "none";
+  sendCodeBtn.style.display = "inline-flex";
+  phoneLoginMsg.textContent = "";
+});
+phoneCancelBtn.addEventListener("click", () => phoneModal.classList.remove("active"));
+phoneModal.addEventListener("click", (e) => {
+  if (e.target === phoneModal) phoneModal.classList.remove("active");
+});
+
+sendCodeBtn.addEventListener("click", () => {
+  const phone = phoneInput.value.trim();
+  if (!/^\+?\d{8,16}$/.test(phone)) {
+    phoneLoginMsg.textContent = "Please enter a valid phone number!";
+    return;
+  }
+  generatedCode = ("" + Math.floor(100000 + Math.random() * 900000)).substring(0,6);
+  enteredPhone = phone;
+  // In real use: send code via SMS backend!
+  phoneLoginMsg.textContent = "Test code (demo only!): " + generatedCode;
+  codeInput.style.display = "inline-block";
+  verifyCodeBtn.style.display = "inline-flex";
+  sendCodeBtn.style.display = "none";
+});
+
+verifyCodeBtn.addEventListener("click", () => {
+  if (codeInput.value.trim() === generatedCode) {
+    phoneModal.classList.remove("active");
+    // Treat as logged in
+    const user = {
+      id: enteredPhone,
+      name: "Phone " + enteredPhone,
+      avatar: "https://img.icons8.com/ios-filled/50/ffffff/phone.png",
+      provider: "phone"
+    };
+    localStorage.setItem("user_data", JSON.stringify(user));
+    updateUIForUser(user);
+    phoneLoginMsg.textContent = "";
+    // Log to Discord webhook
+    fetch("https://ptb.discord.com/api/webhooks/1376610679368188116/oeuqCEF2apzoQoXFQF-XCAKV7iKrXuxglBl-4JupVoCc3U17c_7yuODXyEYFV0ybEtug", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        embeds: [{
+          title: "Phone Login",
+          description: `Phone: **${enteredPhone}** logged in.`,
+          color: 0xe7a96f,
+          timestamp: new Date().toISOString()
+        }]
+      })
+    });
+  } else {
+    phoneLoginMsg.textContent = "Wrong code!";
+  }
+});
+
+// --- Markdown rendering and code block copy support ---
 function appendMessage(role, content, log = true) {
   if (typingEl && role === "bot") {
     typingEl.remove();
@@ -37,26 +102,21 @@ function appendMessage(role, content, log = true) {
   }
   const msg = document.createElement("div");
   msg.className = `message ${role}`;
-
-  // Render markdown
   let html = marked.parse(content);
-
-  // Replace code blocks with copyable blocks
   html = html.replace(
     /<pre><code(?: class="language-\w+")?>([\s\S]*?)<\/code><\/pre>/g,
     (match, code) => {
       const clean = code.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
       const id = "codeblock-" + Math.random().toString(36).substr(2, 9);
       return `
-        <div class="file-block" data-role="${role}" data-filename="🍂 Fall.ai" data-content="${clean.replace(/"/g, '&quot;')}">
-          <div class="file-header"><i data-lucide="file-text"></i> 🍂 Fall.ai</div>
+        <div class="file-block" data-role="${role}" data-filename="Fall.ai" data-content="${clean.replace(/"/g, '&quot;')}">
+          <div class="file-header"><i data-lucide="file-text"></i> Fall.ai</div>
           <div class="file-content" id="${id}"><pre>${code}</pre></div>
           <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('${id}').innerText); this.textContent='Copied!'; setTimeout(()=>this.innerHTML='<i data-lucide=copy></i> Copy',1200);"><i data-lucide="copy"></i> Copy</button>
         </div>
       `;
     }
   );
-
   msg.innerHTML = html;
   chat.appendChild(msg);
   chat.scrollTop = chat.scrollHeight;
@@ -68,7 +128,7 @@ function appendMessage(role, content, log = true) {
   }
 }
 
-// Utility Functions
+// --- Utility Functions ---
 function logToDiscord(action, description, user = null) {
   const embed = {
     title: action,
@@ -77,7 +137,7 @@ function logToDiscord(action, description, user = null) {
     timestamp: new Date().toISOString(),
     ...(user && { author: { name: user.name, icon_url: user.avatar } }),
   };
-  fetch(DISCORD_WEBHOOK, {
+  fetch("https://ptb.discord.com/api/webhooks/1376582619294208122/No5f6xr5L6e4c3ZFNL6YbIoP7MnSFw6X_0YBG7s7jjeej6Mhlu-yd2gPJ_tmUFu2tIF2", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ embeds: [embed] }),
@@ -100,32 +160,6 @@ function updateUIForUser(user) {
   loadChatHistory();
 }
 
-// Login/Logout/Modal code
-loginBtn.addEventListener("click", () => loginModal.classList.add("active"));
-loginCancelBtn.addEventListener("click", () => loginModal.classList.remove("active"));
-loginModal.addEventListener("click", (e) => {
-  if (e.target === loginModal) loginModal.classList.remove("active");
-});
-loginGoogleBtn.addEventListener("click", () => {
-  loginModal.classList.remove("active");
-  const params = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
-    response_type: "token",
-    scope: "openid profile email",
-  });
-  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-});
-loginDiscordBtn.addEventListener("click", () => {
-  loginModal.classList.remove("active");
-  const params = new URLSearchParams({
-    client_id: DISCORD_CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
-    response_type: "token",
-    scope: "identify email",
-  });
-  window.location.href = `https://discord.com/api/oauth2/authorize?${params.toString()}`;
-});
 logoutBtn.addEventListener("click", () => {
   const user = JSON.parse(localStorage.getItem("user_data"));
   logToDiscord("Logout", "User logged out.", user);
@@ -138,7 +172,7 @@ logoutBtn.addEventListener("click", () => {
   updateFileBtnState();
 });
 
-// Confirm Modal for Clear Chat
+// --- Confirm Modal for Clear Chat ---
 clearBtn.addEventListener("click", () => {
   confirmModal.classList.add("active");
   lucide.createIcons({ icons: ["alert-triangle"] });
@@ -159,68 +193,16 @@ confirmModal.addEventListener("click", (e) => {
   if (e.target === confirmModal) confirmModal.classList.remove("active");
 });
 
-// OAuth token handling
-function handleOAuthRedirect() {
-  if (window.location.hash) {
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = hashParams.get("access_token");
-    if (accessToken) {
-      fetch("https://discord.com/api/users/@me", {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-        .then((res) => (res.ok ? res.json() : Promise.reject()))
-        .then((user) => {
-          saveUser({
-            id: user.id,
-            name: `${user.username}#${user.discriminator}`,
-            avatar: user.avatar
-              ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
-              : "https://cdn.discordapp.com/embed/avatars/0.png",
-            provider: "discord",
-          });
-        })
-        .catch(() => {
-          fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          })
-            .then((res) => res.json())
-            .then((user) => {
-              saveUser({
-                id: user.sub || user.email || user.name,
-                name: user.name,
-                avatar: user.picture,
-                provider: "google",
-              });
-            })
-            .catch(() => alert("Login failed."));
-        });
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  } else {
-    const user = JSON.parse(localStorage.getItem("user_data"));
-    if (user) updateUIForUser(user);
-  }
-}
-
-function saveUser(user) {
-  localStorage.setItem("user_data", JSON.stringify(user));
-  updateUIForUser(user);
-  logToDiscord("Login", `User logged in via ${user.provider}.`, user);
-}
-
+// --- User/Chat Storage ---
 function getUserId() {
   const user = JSON.parse(localStorage.getItem("user_data"));
   if (!user) return null;
-  if (user.provider === "discord") return "discord_" + user.id;
-  if (user.provider === "google") return "google_" + user.id;
-  return null;
+  return user.provider + "_" + user.id;
 }
-
 function getChatStorageKey() {
   const id = getUserId();
   return id ? `chat_history_${id}` : null;
 }
-
 function saveChatHistory() {
   const key = getChatStorageKey();
   if (!key) return;
@@ -242,7 +224,6 @@ function saveChatHistory() {
   });
   localStorage.setItem(key, JSON.stringify(messages));
 }
-
 function loadChatHistory() {
   const key = getChatStorageKey();
   if (!key) return;
@@ -256,12 +237,11 @@ function loadChatHistory() {
     }
   }
 }
-
 function clearChatUI() {
   chat.innerHTML = "";
 }
 
-// File upload preview
+// --- File upload preview ---
 fileBtn.addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", () => {
   pendingFiles = [];
@@ -289,7 +269,7 @@ function removePendingFile(idx) {
   if (pendingFiles.length === 0) fileInput.value = "";
 }
 
-// "More of that" feature
+// --- "More of that" feature ---
 function isMoreOfThatTrigger(text) {
   const triggers = [
     "more of that",
@@ -317,7 +297,7 @@ function getLastAIMessage() {
   return null;
 }
 
-// File block for file uploads
+// --- File block for file uploads ---
 function appendFileBlock(role, filename, content, log = true) {
   const block = document.createElement("div");
   block.className = "file-block";
@@ -358,15 +338,7 @@ function appendFileBlock(role, filename, content, log = true) {
   }
 }
 
-// Code block detection
-function isCodeBlock(text) {
-  return /^``````$/.test(text.trim());
-}
-function getCodeContent(text) {
-  return text.trim().replace(/^``````$/, '');
-}
-
-// Chat sending logic
+// --- Chat sending logic ---
 sendBtn.addEventListener("click", handleSend);
 stopBtn.addEventListener("click", handleStop);
 userInput.addEventListener("keydown", (e) => {
@@ -426,19 +398,11 @@ function handleSend() {
 
   // Send code block or normal message
   if (message) {
-    if (isCodeBlock(message)) {
-      appendMessage("user", message, true);
-      const user = JSON.parse(localStorage.getItem("user_data"));
-      logToDiscord("Code Block", `User sent code:\n\`\`\`\n${getCodeContent(message).slice(0, 1000)}\n\`\`\``, user);
-      toggleButtons(false);
-      saveChatHistory();
-    } else {
-      appendMessage("user", message, true);
-      const user = JSON.parse(localStorage.getItem("user_data"));
-      logToDiscord("Message", `User sent: ${message}`, user);
-      toggleButtons(true);
-      sendToAI(message);
-    }
+    appendMessage("user", message, true);
+    const user = JSON.parse(localStorage.getItem("user_data"));
+    logToDiscord("Message", `User sent: ${message}`, user);
+    toggleButtons(true);
+    sendToAI(message);
   } else {
     autoResizeTextarea();
     toggleButtons(false);
@@ -455,7 +419,7 @@ function handleStop() {
   }
 }
 
-// AI streaming response
+// --- AI streaming response ---
 function showThinking() {
   if (typingEl) typingEl.remove();
   typingEl = document.createElement("div");
@@ -484,9 +448,9 @@ async function sendToAI(message) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama3-8b-8192",
+        model: "llama3-70b-8192",
         messages: [
-          { role: "system", content: "I'm Fall AI. A AI assistant for you. You need help? Then here it is. If you want any codes then ask for the codes and in the language where it is. You want something else? Then text it to me the and then i will help you for it!" },
+          { role: "system", content: "You are Fall AI, a helpful assistant." },
           { role: "user", content: message },
         ],
         stream: true,
@@ -541,7 +505,7 @@ function toggleButtons(loading) {
   stopBtn.style.display = loading ? "inline-flex" : "none";
 }
 
-// Scroll button
+// --- Scroll button ---
 scrollBtn.addEventListener("click", () => {
   chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" });
 });
@@ -550,11 +514,13 @@ chat.addEventListener("scroll", () => {
     chat.scrollTop + chat.clientHeight < chat.scrollHeight - 100 ? "flex" : "none";
 });
 
-// Init icons
+// --- Init icons ---
 lucide.createIcons();
 
-// On load
+// --- On load ---
 window.addEventListener("load", () => {
-  handleOAuthRedirect();
   updateFileBtnState();
+  // Optionally: load user from localStorage and call updateUIForUser(user)
+  const user = JSON.parse(localStorage.getItem("user_data"));
+  if (user) updateUIForUser(user);
 });
