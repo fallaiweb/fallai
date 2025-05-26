@@ -60,6 +60,7 @@ logoutBtn.addEventListener("click", () => {
   userAvatar.style.display = "none";
   loginBtn.style.display = "inline-flex";
   logoutBtn.style.display = "none";
+  clearChatUI();
 });
 
 // ==== Token from URL and fetch user data ====
@@ -75,10 +76,12 @@ function handleOAuthRedirect() {
         .then(res => res.ok ? res.json() : Promise.reject())
         .then(user => {
           saveUser({
+            id: user.id,
             name: `${user.username}#${user.discriminator}`,
             avatar: user.avatar
               ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
-              : "https://cdn.discordapp.com/embed/avatars/0.png"
+              : "https://cdn.discordapp.com/embed/avatars/0.png",
+            provider: "discord"
           });
         })
         .catch(() => {
@@ -89,19 +92,19 @@ function handleOAuthRedirect() {
             .then(res => res.json())
             .then(user => {
               saveUser({
+                id: user.sub || user.email || user.name,
                 name: user.name,
-                avatar: user.picture
+                avatar: user.picture,
+                provider: "google"
               });
             })
             .catch(() => {
               alert("Login failed.");
             });
         });
-      // Clean up hash
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   } else {
-    // Already logged in?
     const user = JSON.parse(localStorage.getItem("user_data"));
     if (user) updateUIForUser(user);
   }
@@ -112,12 +115,53 @@ function saveUser(user) {
   updateUIForUser(user);
 }
 
+function getUserId() {
+  const user = JSON.parse(localStorage.getItem("user_data"));
+  if (!user) return null;
+  if (user.provider === "discord") return "discord_" + user.id;
+  if (user.provider === "google") return "google_" + user.id;
+  return null;
+}
+
+function getChatStorageKey() {
+  const id = getUserId();
+  return id ? `chat_history_${id}` : null;
+}
+
+function saveChatHistory() {
+  const key = getChatStorageKey();
+  if (!key) return;
+  const messages = [];
+  document.querySelectorAll("#chat .message").forEach(msg => {
+    messages.push({
+      role: msg.classList.contains("user") ? "user" : "bot",
+      content: msg.textContent
+    });
+  });
+  localStorage.setItem(key, JSON.stringify(messages));
+}
+
+function loadChatHistory() {
+  const key = getChatStorageKey();
+  if (!key) return;
+  const messages = JSON.parse(localStorage.getItem(key) || "[]");
+  clearChatUI();
+  for (const msg of messages) {
+    appendMessage(msg.role, msg.content);
+  }
+}
+
+function clearChatUI() {
+  chat.innerHTML = "";
+}
+
 function updateUIForUser(user) {
   usernameSpan.textContent = user.name;
   userAvatar.src = user.avatar;
   userAvatar.style.display = "inline-block";
   loginBtn.style.display = "none";
   logoutBtn.style.display = "inline-flex";
+  loadChatHistory();
 }
 
 // ==== Chat Functions ====
@@ -173,6 +217,7 @@ function appendMessage(role, content) {
   msg.textContent = content;
   chat.appendChild(msg);
   chat.scrollTop = chat.scrollHeight;
+  saveChatHistory();
 }
 
 function showThinking() {
@@ -226,7 +271,7 @@ async function sendToAI(message) {
         for (const line of lines) {
           if (line.startsWith("data:")) {
             const data = line.replace("data: ", "");
-            if (data === "[DONE]") continue; // Don't parse [DONE] as JSON!
+            if (data === "[DONE]") continue;
             try {
               const parsed = JSON.parse(data);
               const token = parsed.choices?.[0]?.delta?.content;
