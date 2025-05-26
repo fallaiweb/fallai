@@ -89,6 +89,10 @@ body {
   background-color: #222;
   color: #fff;
   outline: none;
+  min-height: 40px;
+  max-height: 200px;
+  overflow-y: auto;
+  transition: height 0.1s;
 }
 
 .input-area button {
