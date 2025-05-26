@@ -84,7 +84,25 @@ logoutBtn.addEventListener("click", () => {
   loginBtn.style.display = "inline-flex";
   logoutBtn.style.display = "none";
   clearChatUI();
+  updateFileBtnState();
 });
+
+// Enable file button only if logged in
+function updateFileBtnState() {
+  const user = JSON.parse(localStorage.getItem("user_data"));
+  fileBtn.disabled = !user;
+}
+updateFileBtnState();
+
+function updateUIForUser(user) {
+  usernameSpan.textContent = user.name;
+  userAvatar.src = user.avatar;
+  userAvatar.style.display = "inline-block";
+  loginBtn.style.display = "none";
+  logoutBtn.style.display = "inline-flex";
+  updateFileBtnState();
+  loadChatHistory();
+}
 
 // Clear chat with confirmation modal
 clearBtn.addEventListener("click", () => {
@@ -209,15 +227,6 @@ function clearChatUI() {
   chat.innerHTML = "";
 }
 
-function updateUIForUser(user) {
-  usernameSpan.textContent = user.name;
-  userAvatar.src = user.avatar;
-  userAvatar.style.display = "inline-block";
-  loginBtn.style.display = "none";
-  logoutBtn.style.display = "inline-flex";
-  loadChatHistory();
-}
-
 // File upload preview
 fileBtn.addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", () => {
@@ -246,32 +255,7 @@ function removePendingFile(idx) {
   if (pendingFiles.length === 0) fileInput.value = "";
 }
 
-// Chat functions
-sendBtn.addEventListener("click", handleSend);
-stopBtn.addEventListener("click", handleStop);
-
-userInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    handleSend();
-  }
-});
-
-userInput.addEventListener("input", autoResizeTextarea);
-
-function autoResizeTextarea() {
-  userInput.style.height = "auto";
-  const maxHeight = 140;
-  if (userInput.scrollHeight > maxHeight) {
-    userInput.style.height = maxHeight + "px";
-    userInput.style.overflowY = "auto";
-  } else {
-    userInput.style.height = userInput.scrollHeight + "px";
-    userInput.style.overflowY = "hidden";
-  }
-}
-autoResizeTextarea();
-
+// Helper for code block detection
 function isCodeBlock(text) {
   return /^``````$/.test(text.trim());
 }
@@ -279,7 +263,12 @@ function getCodeContent(text) {
   return text.trim().replace(/^``````$/, '');
 }
 
+// Send message and files together
 function handleSend() {
+  const message = userInput.value.trim();
+  if (!message && pendingFiles.length === 0) return;
+
+  // Send files first
   if (pendingFiles.length > 0) {
     for (const pf of pendingFiles) {
       appendFileBlock("user", pf.filename, "", true);
@@ -289,30 +278,30 @@ function handleSend() {
     pendingFiles = [];
     filePreview.innerHTML = "";
     fileInput.value = "";
+  }
+
+  // Send message
+  if (message) {
+    if (isCodeBlock(message)) {
+      appendFileBlock("user", "Fall.ai", getCodeContent(message), true);
+      const user = JSON.parse(localStorage.getItem("user_data"));
+      logToDiscord("Code Block", `User sent code:\n\`\`\`\n${getCodeContent(message).slice(0, 1000)}\n\`\`\``, user);
+      toggleButtons(false);
+      saveChatHistory();
+    } else {
+      appendMessage("user", message, true);
+      const user = JSON.parse(localStorage.getItem("user_data"));
+      logToDiscord("Message", `User sent: ${message}`, user);
+      toggleButtons(true);
+      sendToAI(message);
+    }
+  } else {
     autoResizeTextarea();
     toggleButtons(false);
     saveChatHistory();
-    return;
   }
-  const message = userInput.value.trim();
-  if (!message) return;
-  if (isCodeBlock(message)) {
-    appendFileBlock("user", "Fall.ai", getCodeContent(message), true);
-    userInput.value = "";
-    autoResizeTextarea();
-    const user = JSON.parse(localStorage.getItem("user_data"));
-    logToDiscord("Code Block", `User sent code:\n\`\`\`\n${getCodeContent(message).slice(0, 1000)}\n\`\`\``, user);
-    toggleButtons(false);
-    saveChatHistory();
-    return;
-  }
-  appendMessage("user", message, true);
   userInput.value = "";
   autoResizeTextarea();
-  toggleButtons(true);
-  const user = JSON.parse(localStorage.getItem("user_data"));
-  logToDiscord("Message", `User sent: ${message}`, user);
-  sendToAI(message);
 }
 
 function handleStop() {
@@ -469,7 +458,7 @@ function toggleButtons(loading) {
   stopBtn.style.display = loading ? "inline-flex" : "none";
 }
 
-// Scroll to bottom button
+// Scroll button
 scrollBtn.addEventListener("click", () => {
   chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" });
 });
@@ -478,10 +467,11 @@ chat.addEventListener("scroll", () => {
     chat.scrollTop + chat.clientHeight < chat.scrollHeight - 100 ? "flex" : "none";
 });
 
-// Initialize lucide icons
+// Initialize icons
 lucide.createIcons();
 
 // On load
 window.addEventListener("load", () => {
   handleOAuthRedirect();
+  updateFileBtnState();
 });
