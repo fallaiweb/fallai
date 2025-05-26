@@ -97,6 +97,7 @@ clearBtn.addEventListener("click", () => {
     if (key) localStorage.removeItem(key);
     clearChatUI();
     const user = JSON.parse(localStorage.getItem("user_data"));
+    appendMessage("bot", "Chat history was cleared.", false);
     logToDiscord("Chat Cleared", "User cleared their chat history.", user);
   }
 });
