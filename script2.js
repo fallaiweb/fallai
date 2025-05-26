@@ -347,6 +347,7 @@ function appendFileBlock(role, filename, content, log = true) {
     });
     block.appendChild(copyBtn);
   }
+
   chat.appendChild(block);
   chat.scrollTop = chat.scrollHeight;
   lucide.createIcons({ icons: ["file-text", "copy"] });
@@ -435,110 +436,125 @@ function handleSend() {
       appendMessage("user", message, true);
       const user = JSON.parse(localStorage.getItem("user_data"));
       logToDiscord("Message", `User sent: ${message}`, user);
-      toggleButtons(false);
-      saveChatHistory();
+      toggleButtons(true);
       sendToAI(message);
     }
-    userInput.value = "";
+  } else {
     autoResizeTextarea();
+    toggleButtons(false);
+    saveChatHistory();
   }
+  userInput.value = "";
+  autoResizeTextarea();
 }
 
 function handleStop() {
   if (abortController) {
     abortController.abort();
-    abortController = null;
-    if (typingEl) {
-      typingEl.remove();
-      typingEl = null;
+    toggleButtons(false);
+  }
+}
+
+// AI streaming response
+function showThinking() {
+  if (typingEl) typingEl.remove();
+  typingEl = document.createElement("div");
+  typingEl.className = "message bot typing-animation";
+  typingEl.textContent = "Fall AI is thinking";
+  chat.appendChild(typingEl);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function updateTypingIndicator(text) {
+  if (!typingEl) showThinking();
+  typingEl.textContent = text;
+  chat.scrollTop = chat.scrollHeight;
+}
+
+async function sendToAI(message) {
+  showThinking();
+  abortController = new AbortController();
+  let botMsg = "";
+
+  try {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${GROQ_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "llama3-70b-8192",
+        messages: [
+          { role: "system", content: "You are Fall AI, a helpful assistant." },
+          { role: "user", content: message },
+        ],
+        stream: true,
+      }),
+      signal: abortController.signal,
+    });
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+
+    let done = false;
+    while (!done) {
+      const { value, done: streamDone } = await reader.read();
+      done = streamDone;
+      if (value) {
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n").filter((line) => line.trim() !== "");
+        for (const line of lines) {
+          if (line.startsWith("data:")) {
+            const data = line.replace("data: ", "");
+            if (data === "[DONE]") continue;
+            try {
+              const parsed = JSON.parse(data);
+              const token = parsed.choices?.[0]?.delta?.content;
+              if (token) {
+                botMsg += token;
+                updateTypingIndicator(botMsg);
+              }
+            } catch {}
+          }
+        }
+      }
     }
+
+    if (typingEl) typingEl.remove();
+
+    appendMessage("bot", botMsg, true);
+  } catch (error) {
+    if (typingEl) typingEl.remove();
+    if (error.name === "AbortError") {
+      appendMessage("bot", "(Answer canceled)");
+    } else {
+      appendMessage("bot", "An error occurred.");
+    }
+  } finally {
     toggleButtons(false);
   }
 }
 
 function toggleButtons(loading) {
-  sendBtn.disabled = loading;
-  stopBtn.disabled = !loading;
+  sendBtn.style.display = loading ? "none" : "inline-flex";
+  stopBtn.style.display = loading ? "inline-flex" : "none";
 }
 
-function sendToAI(message) {
-  abortController = new AbortController();
-  typingEl = document.createElement("div");
-  typingEl.className = "message bot typing";
-  typingEl.innerHTML = '<span class="typing-dots"></span>';
-  chat.appendChild(typingEl);
-  chat.scrollTop = chat.scrollHeight;
-  toggleButtons(true);
-
-  fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${GROQ_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "mixtral-8x7b-32768",
-      messages: buildChatMessages(message),
-      stream: false
-    }),
-    signal: abortController.signal,
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (typingEl) {
-        typingEl.remove();
-        typingEl = null;
-      }
-      if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
-        appendMessage("bot", data.choices[0].message.content, true);
-      } else {
-        appendMessage("bot", "Sorry, da kam keine Antwort von der KI.", true);
-      }
-      toggleButtons(false);
-    })
-    .catch(err => {
-      if (typingEl) {
-        typingEl.remove();
-        typingEl = null;
-      }
-      appendMessage("bot", "Fehler: " + (err.message || err), true);
-      toggleButtons(false);
-    });
-}
-
-function buildChatMessages(latestUserMessage) {
-  const messages = [];
-  document.querySelectorAll("#chat .message, #chat .file-block").forEach((msg) => {
-    if (msg.classList.contains("file-block")) {
-      messages.push({
-        role: msg.dataset.role === "user" ? "user" : "assistant",
-        content: `FILE: ${msg.dataset.filename}\n${msg.dataset.content}`
-      });
-    } else {
-      messages.push({
-        role: msg.classList.contains("user") ? "user" : "assistant",
-        content: msg.textContent
-      });
-    }
-  });
-  messages.push({ role: "user", content: latestUserMessage });
-  return messages;
-}
-
-// Scroll Button
+// Scroll button
 scrollBtn.addEventListener("click", () => {
-  chat.scrollTop = chat.scrollHeight;
+  chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" });
 });
 chat.addEventListener("scroll", () => {
-  if (chat.scrollTop + chat.clientHeight < chat.scrollHeight - 20) {
-    scrollBtn.style.display = "block";
-  } else {
-    scrollBtn.style.display = "none";
-  }
+  scrollBtn.style.display =
+    chat.scrollTop + chat.clientHeight < chat.scrollHeight - 100 ? "flex" : "none";
 });
 
-// On Load
-window.addEventListener("DOMContentLoaded", () => {
+// Init icons
+lucide.createIcons();
+
+// On load
+window.addEventListener("load", () => {
   handleOAuthRedirect();
-  autoResizeTextarea();
+  updateFileBtnState();
 });
