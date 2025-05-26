@@ -487,6 +487,7 @@ async function sendToAI(message) {
         model: "llama3-8b-8192",
         messages: [
           { role: "system", content: "You are Fall AI, a helpful assistant. Who can help other for issues. Watch the updates in the left site of the website." },
+          { role: "help", content: "You need help? Then here it is. If you want any codes then ask for the codes and in the language where it is. You want something else? Then text it to me the and then i will help you for it!" },
           { role: "user", content: message },
         ],
         stream: true,
