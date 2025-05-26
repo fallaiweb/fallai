@@ -1,3 +1,9 @@
+// ==== Provider IDs (hier eintragen) ====
+const GOOGLE_CLIENT_ID = "430741103805-r80p5k14p9e66srupo4jvdle4pen1fqb.apps.googleusercontent.com";
+const DISCORD_CLIENT_ID = "1376180153654448180";
+const DISCORD_REDIRECT_URI = "https://fallai.netlify.app/auth/callback"; // z.B. https://deine-domain.de
+// ==== Ende Provider IDs ====
+
 // Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAPf_EoIxzFhArc83GBaIy7h--2Kye0T3E",
@@ -21,18 +27,39 @@ const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 const stopBtn = document.getElementById('stop-btn');
 const scrollBtn = document.getElementById('scroll-btn');
+const loginBtn = document.getElementById('login-btn');
+const loginModal = document.getElementById('login-modal');
 const loginGoogle = document.getElementById('login-google');
 const loginDiscord = document.getElementById('login-discord');
+const loginCancel = document.getElementById('login-cancel');
 const logoutBtn = document.getElementById('logout-btn');
 const usernameSpan = document.getElementById('username');
 const resetBtn = document.getElementById('reset-chat-btn');
 
-sendBtn.addEventListener('click', handleSend);
-stopBtn.addEventListener('click', handleStop);
-loginGoogle.addEventListener('click', loginWithGoogle);
-loginDiscord.addEventListener('click', loginWithDiscord);
+// Login Modal Handling
+loginBtn.addEventListener('click', () => {
+  loginModal.classList.add('active');
+});
+loginCancel.addEventListener('click', () => {
+  loginModal.classList.remove('active');
+});
+loginModal.addEventListener('click', (e) => {
+  if (e.target === loginModal) loginModal.classList.remove('active');
+});
+
+loginGoogle.addEventListener('click', () => {
+  loginModal.classList.remove('active');
+  loginWithGoogle();
+});
+loginDiscord.addEventListener('click', () => {
+  loginModal.classList.remove('active');
+  loginWithDiscord();
+});
+
 logoutBtn.addEventListener('click', handleLogout);
 resetBtn.addEventListener('click', resetChat);
+sendBtn.addEventListener('click', handleSend);
+stopBtn.addEventListener('click', handleStop);
 scrollBtn.addEventListener('click', () => chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" }));
 chat.addEventListener('scroll', () => {
   scrollBtn.style.display = chat.scrollTop + chat.clientHeight < chat.scrollHeight - 100 ? "flex" : "none";
@@ -67,25 +94,32 @@ autoResizeTextarea();
 
 function loginWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
+  // Optional: Provider-ID setzen
+  if (GOOGLE_CLIENT_ID) provider.setCustomParameters({ client_id: GOOGLE_CLIENT_ID });
   auth.signInWithPopup(provider).then(result => {
     user = result.user;
     currentUserId = user.uid;
     usernameSpan.textContent = user.displayName;
-    loginGoogle.style.display = 'none';
-    loginDiscord.style.display = 'none';
+    loginBtn.style.display = 'none';
     logoutBtn.style.display = 'inline-block';
     loadChat();
   });
 }
 
 function loginWithDiscord() {
+  // ACHTUNG: Discord OIDC muss in Firebase Console eingerichtet sein!
   const provider = new firebase.auth.OAuthProvider('oidc.discord');
+  if (DISCORD_CLIENT_ID && DISCORD_REDIRECT_URI) {
+    provider.setCustomParameters({
+      client_id: DISCORD_CLIENT_ID,
+      redirect_uri: DISCORD_REDIRECT_URI
+    });
+  }
   auth.signInWithPopup(provider).then(result => {
     user = result.user;
     currentUserId = user.uid;
     usernameSpan.textContent = user.displayName;
-    loginGoogle.style.display = 'none';
-    loginDiscord.style.display = 'none';
+    loginBtn.style.display = 'none';
     logoutBtn.style.display = 'inline-block';
     loadChat();
   });
@@ -96,8 +130,7 @@ function handleLogout() {
     user = { displayName: "Guest" };
     currentUserId = null;
     usernameSpan.textContent = "Guest";
-    loginGoogle.style.display = 'inline-block';
-    loginDiscord.style.display = 'inline-block';
+    loginBtn.style.display = 'inline-flex';
     logoutBtn.style.display = 'none';
     clearChatUI();
   });
