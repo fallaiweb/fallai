@@ -29,7 +29,7 @@ let abortController = null;
 let typingEl = null;
 let pendingFiles = [];
 
-// --- Markdown rendering and code block copy support ---
+// Markdown rendering and code block copy support
 function appendMessage(role, content, log = true) {
   if (typingEl && role === "bot") {
     typingEl.remove();
@@ -68,7 +68,7 @@ function appendMessage(role, content, log = true) {
   }
 }
 
-// --- Utility Functions ---
+// Utility Functions
 function logToDiscord(action, description, user = null) {
   const embed = {
     title: action,
@@ -100,7 +100,7 @@ function updateUIForUser(user) {
   loadChatHistory();
 }
 
-// --- Login/Logout/Modal code ---
+// Login/Logout/Modal code
 loginBtn.addEventListener("click", () => loginModal.classList.add("active"));
 loginCancelBtn.addEventListener("click", () => loginModal.classList.remove("active"));
 loginModal.addEventListener("click", (e) => {
@@ -138,7 +138,7 @@ logoutBtn.addEventListener("click", () => {
   updateFileBtnState();
 });
 
-// --- Confirm Modal for Clear Chat ---
+// Confirm Modal for Clear Chat
 clearBtn.addEventListener("click", () => {
   confirmModal.classList.add("active");
   lucide.createIcons({ icons: ["alert-triangle"] });
@@ -159,7 +159,7 @@ confirmModal.addEventListener("click", (e) => {
   if (e.target === confirmModal) confirmModal.classList.remove("active");
 });
 
-// --- OAuth token handling ---
+// OAuth token handling
 function handleOAuthRedirect() {
   if (window.location.hash) {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -261,7 +261,7 @@ function clearChatUI() {
   chat.innerHTML = "";
 }
 
-// --- File upload preview ---
+// File upload preview
 fileBtn.addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", () => {
   pendingFiles = [];
@@ -289,7 +289,7 @@ function removePendingFile(idx) {
   if (pendingFiles.length === 0) fileInput.value = "";
 }
 
-// --- "More of that" feature ---
+// "More of that" feature
 function isMoreOfThatTrigger(text) {
   const triggers = [
     "more of that",
@@ -317,7 +317,7 @@ function getLastAIMessage() {
   return null;
 }
 
-// --- File block for file uploads ---
+// File block for file uploads
 function appendFileBlock(role, filename, content, log = true) {
   const block = document.createElement("div");
   block.className = "file-block";
@@ -358,7 +358,7 @@ function appendFileBlock(role, filename, content, log = true) {
   }
 }
 
-// --- Code block detection ---
+// Code block detection
 function isCodeBlock(text) {
   return /^``````$/.test(text.trim());
 }
@@ -366,7 +366,7 @@ function getCodeContent(text) {
   return text.trim().replace(/^``````$/, '');
 }
 
-// --- Chat sending logic ---
+// Chat sending logic
 sendBtn.addEventListener("click", handleSend);
 stopBtn.addEventListener("click", handleStop);
 userInput.addEventListener("keydown", (e) => {
@@ -379,7 +379,7 @@ userInput.addEventListener("input", autoResizeTextarea);
 
 function autoResizeTextarea() {
   userInput.style.height = "auto";
-  const maxHeight = 140;
+  const maxHeight = 100;
   if (userInput.scrollHeight > maxHeight) {
     userInput.style.height = maxHeight + "px";
     userInput.style.overflowY = "auto";
@@ -455,7 +455,7 @@ function handleStop() {
   }
 }
 
-// --- AI streaming response ---
+// AI streaming response
 function showThinking() {
   if (typingEl) typingEl.remove();
   typingEl = document.createElement("div");
@@ -541,7 +541,7 @@ function toggleButtons(loading) {
   stopBtn.style.display = loading ? "inline-flex" : "none";
 }
 
-// --- Scroll button ---
+// Scroll button
 scrollBtn.addEventListener("click", () => {
   chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" });
 });
@@ -550,10 +550,10 @@ chat.addEventListener("scroll", () => {
     chat.scrollTop + chat.clientHeight < chat.scrollHeight - 100 ? "flex" : "none";
 });
 
-// --- Init icons ---
+// Init icons
 lucide.createIcons();
 
-// --- On load ---
+// On load
 window.addEventListener("load", () => {
   handleOAuthRedirect();
   updateFileBtnState();
