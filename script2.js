@@ -1,4 +1,3 @@
-// --- constants and selectors as before ---
 const GROQ_API_KEY = "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";
 const DISCORD_CLIENT_ID = "1376180153654448180";
 const GOOGLE_CLIENT_ID = "430741103805-r80p5k14p9e66srupo4jvdle4pen1fqb.apps.googleusercontent.com";
@@ -29,6 +28,45 @@ const confirmNo = document.getElementById("confirm-no");
 let abortController = null;
 let typingEl = null;
 let pendingFiles = [];
+
+// --- Markdown rendering and code block copy support ---
+function appendMessage(role, content, log = true) {
+  if (typingEl && role === "bot") {
+    typingEl.remove();
+    typingEl = null;
+  }
+  const msg = document.createElement("div");
+  msg.className = `message ${role}`;
+
+  // Render markdown
+  let html = marked.parse(content);
+
+  // Replace code blocks with copyable blocks
+  html = html.replace(
+    /<pre><code(?: class="language-\w+")?>([\s\S]*?)<\/code><\/pre>/g,
+    (match, code) => {
+      const clean = code.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+      const id = "codeblock-" + Math.random().toString(36).substr(2, 9);
+      return `
+        <div class="file-block" data-role="${role}" data-filename="Fall.ai" data-content="${clean.replace(/"/g, '&quot;')}">
+          <div class="file-header"><i data-lucide="file-text"></i> Fall.ai</div>
+          <div class="file-content" id="${id}"><pre>${code}</pre></div>
+          <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('${id}').innerText); this.textContent='Copied!'; setTimeout(()=>this.innerHTML='<i data-lucide=copy></i> Copy',1200);"><i data-lucide="copy"></i> Copy</button>
+        </div>
+      `;
+    }
+  );
+
+  msg.innerHTML = html;
+  chat.appendChild(msg);
+  chat.scrollTop = chat.scrollHeight;
+  lucide.createIcons({ icons: ["file-text", "copy"] });
+  saveChatHistory();
+  if (role === "bot" && log) {
+    const user = JSON.parse(localStorage.getItem("user_data"));
+    logToDiscord("AI Response", content, user);
+  }
+}
 
 // --- Utility Functions ---
 function logToDiscord(action, description, user = null) {
@@ -62,7 +100,7 @@ function updateUIForUser(user) {
   loadChatHistory();
 }
 
-// --- Login/Logout/Modal code as before ---
+// --- Login/Logout/Modal code ---
 loginBtn.addEventListener("click", () => loginModal.classList.add("active"));
 loginCancelBtn.addEventListener("click", () => loginModal.classList.remove("active"));
 loginModal.addEventListener("click", (e) => {
@@ -279,9 +317,50 @@ function getLastAIMessage() {
   return null;
 }
 
-// --- Codeblock detection ---
+// --- File block for file uploads ---
+function appendFileBlock(role, filename, content, log = true) {
+  const block = document.createElement("div");
+  block.className = "file-block";
+  block.dataset.role = role;
+  block.dataset.filename = filename;
+  block.dataset.content = content;
+
+  const header = document.createElement("div");
+  header.className = "file-header";
+  header.innerHTML = `<i data-lucide="file-text"></i> ${filename}`;
+  block.appendChild(header);
+
+  if (content && content.length > 0) {
+    const fileContent = document.createElement("div");
+    fileContent.className = "file-content";
+    fileContent.textContent = content;
+    block.appendChild(fileContent);
+
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "copy-btn";
+    copyBtn.innerHTML = `<i data-lucide="copy"></i> Copy`;
+    copyBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText(content);
+      copyBtn.textContent = "Copied!";
+      setTimeout(() => (copyBtn.innerHTML = `<i data-lucide="copy"></i> Copy`), 1200);
+      lucide.createIcons({ icons: ["copy"] });
+    });
+    block.appendChild(copyBtn);
+  }
+
+  chat.appendChild(block);
+  chat.scrollTop = chat.scrollHeight;
+  lucide.createIcons({ icons: ["file-text", "copy"] });
+  saveChatHistory();
+  if (log) {
+    const user = JSON.parse(localStorage.getItem("user_data"));
+    logToDiscord("File (Text/File)", `User sent a file: **${filename}**${content ? `\n\`\`\`\n${content.slice(0, 1000)}\n\`\`\`` : ""}`, user);
+  }
+}
+
+// --- Code block detection ---
 function isCodeBlock(text) {
-  return /^``````$/m.test(text.trim());
+  return /^``````$/.test(text.trim());
 }
 function getCodeContent(text) {
   return text.trim().replace(/^``````$/, '');
@@ -348,7 +427,7 @@ function handleSend() {
   // Send code block or normal message
   if (message) {
     if (isCodeBlock(message)) {
-      appendFileBlock("user", "Fall.ai", getCodeContent(message), true);
+      appendMessage("user", message, true);
       const user = JSON.parse(localStorage.getItem("user_data"));
       logToDiscord("Code Block", `User sent code:\n\`\`\`\n${getCodeContent(message).slice(0, 1000)}\n\`\`\``, user);
       toggleButtons(false);
@@ -373,63 +452,6 @@ function handleStop() {
   if (abortController) {
     abortController.abort();
     toggleButtons(false);
-  }
-}
-
-function appendMessage(role, content, log = true) {
-  if (typingEl && role === "bot") {
-    typingEl.remove();
-    typingEl = null;
-  }
-  const msg = document.createElement("div");
-  msg.className = `message ${role}`;
-  msg.textContent = content;
-  chat.appendChild(msg);
-  chat.scrollTop = chat.scrollHeight;
-  saveChatHistory();
-  if (role === "bot" && log) {
-    const user = JSON.parse(localStorage.getItem("user_data"));
-    logToDiscord("AI Response", content, user);
-  }
-}
-
-function appendFileBlock(role, filename, content, log = true) {
-  const block = document.createElement("div");
-  block.className = "file-block";
-  block.dataset.role = role;
-  block.dataset.filename = filename;
-  block.dataset.content = content;
-
-  const header = document.createElement("div");
-  header.className = "file-header";
-  header.innerHTML = `<i data-lucide="file-text"></i> ${filename}`;
-  block.appendChild(header);
-
-  if (content && content.length > 0) {
-    const fileContent = document.createElement("div");
-    fileContent.className = "file-content";
-    fileContent.textContent = content;
-    block.appendChild(fileContent);
-
-    const copyBtn = document.createElement("button");
-    copyBtn.className = "copy-btn";
-    copyBtn.innerHTML = `<i data-lucide="copy"></i> Copy`;
-    copyBtn.addEventListener("click", () => {
-      navigator.clipboard.writeText(content);
-      copyBtn.textContent = "Copied!";
-      setTimeout(() => (copyBtn.innerHTML = `<i data-lucide="copy"></i> Copy`), 1200);
-      lucide.createIcons({ icons: ["copy"] });
-    });
-    block.appendChild(copyBtn);
-  }
-
-  chat.appendChild(block);
-  chat.scrollTop = chat.scrollHeight;
-  lucide.createIcons({ icons: ["file-text", "copy"] });
-  saveChatHistory();
-  if (log) {
-    const user = JSON.parse(localStorage.getItem("user_data"));
-    logToDiscord("File (Text/File)", `User sent a file: **${filename}**${content ? `\n\`\`\`\n${content.slice(0, 1000)}\n\`\`\`` : ""}`, user);
   }
 }
 
@@ -501,11 +523,7 @@ async function sendToAI(message) {
 
     if (typingEl) typingEl.remove();
 
-    if (isCodeBlock(botMsg)) {
-      appendFileBlock("bot", "Fall.ai", getCodeContent(botMsg), true);
-    } else {
-      appendMessage("bot", botMsg, true);
-    }
+    appendMessage("bot", botMsg, true);
   } catch (error) {
     if (typingEl) typingEl.remove();
     if (error.name === "AbortError") {
