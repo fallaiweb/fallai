@@ -105,44 +105,45 @@ header h1 {
   white-space: nowrap;
 }
 
-/* Cool Login/Logout Button */
-.cool-login-btn {
+/* Simple Auth Button */
+.simple-auth-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.7em;
-  background: linear-gradient(90deg, #e7a96f 0%, #fbc2eb 100%);
-  color: #191919;
-  font-weight: 600;
-  font-size: 1.08rem;
-  padding: 0.65em 1.5em;
-  border: none;
-  border-radius: 2em;
-  box-shadow: 0 2px 16px 0 #e7a96f33, 0 1.5px 8px 0 #fbc2eb22;
+  gap: 0.5em;
+  background: #262626;
+  color: #e0e0e0;
+  font-weight: 500;
+  font-size: 0.97rem;
+  padding: 0.45em 1em;
+  border: 1.5px solid #373737;
+  border-radius: 7px;
+  box-shadow: none;
   cursor: pointer;
-  transition: background 0.25s, box-shadow 0.25s, color 0.2s, transform 0.15s;
-  position: relative;
-  overflow: hidden;
+  transition: background 0.18s, color 0.18s, border 0.18s, transform 0.12s;
   outline: none;
+  min-width: 0;
+  min-height: 0;
+  height: 34px;
 }
-.cool-login-btn .login-btn-icon {
+.simple-auth-btn .login-btn-icon {
   display: flex;
   align-items: center;
-  font-size: 1.2em;
+  font-size: 1.07em;
 }
-.cool-login-btn .login-btn-text {
-  letter-spacing: 0.04em;
+.simple-auth-btn .login-btn-text {
+  letter-spacing: 0.01em;
 }
-.cool-login-btn:hover, .cool-login-btn:focus-visible {
-  background: linear-gradient(90deg, #fbc2eb 0%, #e7a96f 100%);
-  box-shadow: 0 4px 24px 0 #fbc2eb55, 0 2.5px 12px 0 #e7a96f44;
-  color: #191919;
-  transform: translateY(-2px) scale(1.03);
+.simple-auth-btn:hover, .simple-auth-btn:focus-visible {
+  background: #333;
+  color: #fff;
+  border-color: #555;
+  transform: translateY(-1px) scale(1.03);
 }
-.cool-login-btn:active {
-  background: linear-gradient(90deg, #e7a96f 0%, #fbc2eb 100%);
-  box-shadow: 0 1px 6px 0 #e7a96f33;
-  color: #191919;
-  transform: scale(0.98);
+.simple-auth-btn:active {
+  background: #222;
+  color: #ccc;
+  border-color: #444;
+  transform: scale(0.97);
 }
 
 /* Login Modal */
