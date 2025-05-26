@@ -25,16 +25,30 @@ const loginBtn = document.getElementById('login-btn');
 const logoutBtn = document.getElementById('logout-btn');
 const usernameSpan = document.getElementById('username');
 const resetBtn = document.getElementById('reset-chat-btn');
+const scrollBtn = document.getElementById('scroll-down-btn');
 
 // === Event Listeners ===
 sendBtn.addEventListener('click', handleSend);
 stopBtn.addEventListener('click', handleStop);
-loginBtn.addEventListener('click', handleLogin);
+loginBtn.addEventListener('click', handleGoogleLogin);
 logoutBtn.addEventListener('click', handleLogout);
 resetBtn.addEventListener('click', resetChat);
+scrollBtn.addEventListener('click', scrollToBottom);
 
-// === Login mit Google ===
-function handleLogin() {
+chat.addEventListener('scroll', () => {
+  if (chat.scrollTop + chat.clientHeight < chat.scrollHeight - 50) {
+    scrollBtn.style.display = 'block';
+  } else {
+    scrollBtn.style.display = 'none';
+  }
+});
+
+function scrollToBottom() {
+  chat.scrollTo({ top: chat.scrollHeight, behavior: 'smooth' });
+}
+
+// === Google Login ===
+function handleGoogleLogin() {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider).then(result => {
     user = result.user;
@@ -44,6 +58,15 @@ function handleLogin() {
     logoutBtn.style.display = 'inline-block';
     loadChat();
   });
+}
+
+// === Discord Login (via OAuth2 redirect) ===
+function handleDiscordLogin() {
+  const redirectUri = encodeURIComponent(window.location.href);
+  const clientId = "1376180153654448180";
+  const scope = "identify email";
+  const discordUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
+  window.location.href = discordUrl;
 }
 
 function handleLogout() {
@@ -57,7 +80,6 @@ function handleLogout() {
   });
 }
 
-// === Nachricht senden ===
 function handleSend() {
   const message = userInput.value.trim();
   if (!message) return;
@@ -95,6 +117,7 @@ function handleSend() {
         toggleButtons(false);
         saveChat({ role: "user", content: message });
         saveChat({ role: "bot", content: botMsg });
+        typingEl = null;
         return;
       }
       const chunk = decoder.decode(value, { stream: true });
@@ -120,7 +143,7 @@ function handleSend() {
   })
   .catch(error => {
     if (error.name === "AbortError") {
-      appendMessage("bot", "(Answer Canceld)");
+      appendMessage("bot", "(Answer cancelled)");
     } else {
       appendMessage("bot", "An error has occurred.");
     }
@@ -128,15 +151,12 @@ function handleSend() {
   });
 }
 
-// === Stop-Button Funktion ===
 function handleStop() {
   if (abortController) {
     abortController.abort();
-    toggleButtons(false);
   }
 }
 
-// === Chat-UI Funktionen ===
 function appendMessage(role, content) {
   const msg = document.createElement("div");
   msg.className = role;
@@ -161,7 +181,6 @@ function toggleButtons(loading) {
   stopBtn.style.display = loading ? "inline-block" : "none";
 }
 
-// === Chat speichern und laden ===
 function saveChat(msg) {
   if (!currentUserId) return;
   db.collection("chats").doc(currentUserId).collection("messages").add({
@@ -191,7 +210,6 @@ function clearChatUI() {
   chat.innerHTML = "";
 }
 
-// === Chat zurücksetzen ===
 function resetChat() {
   if (!currentUserId) {
     clearChatUI();
