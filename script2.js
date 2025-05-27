@@ -24,131 +24,10 @@ const clearBtn = document.getElementById("clear-btn");
 const confirmModal = document.getElementById("confirm-modal");
 const confirmYes = document.getElementById("confirm-yes");
 const confirmNo = document.getElementById("confirm-no");
-const commandList = document.getElementById("command-list");
 
 let abortController = null;
 let typingEl = null;
 let pendingFiles = [];
-
-// --- Welcome message & Command system ---
-
-window.addEventListener("DOMContentLoaded", () => {
-  handleOAuthRedirect();
-  if (!localStorage.getItem("welcome_shown")) {
-    appendMessage(
-      "bot",
-      "👋 **Welcome to Fall AI!**\n\nType `/help` for a list of available commands or just start chatting!"
-    );
-    localStorage.setItem("welcome_shown", "1");
-  }
-});
-
-const COMMANDS = [
-  {
-    cmd: "/help",
-    desc: "Show this help message.",
-    action: () => {
-      appendMessage(
-        "bot",
-        `**Available commands:**\n\n` +
-        COMMANDS.map(c => `\`${c.cmd}\` – ${c.desc}`).join("\n")
-      );
-    }
-  },
-  {
-    cmd: "/discord-ai",
-    desc: "Invite the Discord bot.",
-    action: () => {
-      window.open("https://discord.com/oauth2/authorize?client_id=1376180153654448180", "_blank");
-      appendMessage("bot", "🔗 [Discord Bot invite opened](https://discord.com/oauth2/authorize?client_id=1376180153654448180)");
-    }
-  },
-  {
-    cmd: "/about",
-    desc: "Show information about Fall AI.",
-    action: () => {
-      appendMessage("bot", "🍂 **Fall AI** is an experimental AI chat. Log in for more features!");
-    }
-  },
-  {
-    cmd: "/clear",
-    desc: "Clear the chat history.",
-    action: () => {
-      clearBtn.click();
-    }
-  }
-];
-
-userInput.addEventListener("keydown", (e) => {
-  if (e.key === "/" && userInput.selectionStart === 0 && userInput.value.length === 0) {
-    showCommandList();
-  }
-  if (e.key === "Escape" && commandList.style.display === "block") {
-    hideCommandList();
-  }
-  if (e.key === "Enter" && commandList.style.display === "block") {
-    e.preventDefault();
-    const selected = commandList.querySelector(".selected");
-    if (selected) {
-      userInput.value = selected.dataset.cmd + " ";
-      hideCommandList();
-      userInput.focus();
-    }
-  }
-  if ((e.key === "ArrowDown" || e.key === "ArrowUp") && commandList.style.display === "block") {
-    e.preventDefault();
-    const items = Array.from(commandList.querySelectorAll(".command-item"));
-    let idx = items.findIndex(i => i.classList.contains("selected"));
-    if (e.key === "ArrowDown") idx = (idx + 1) % items.length;
-    if (e.key === "ArrowUp") idx = (idx - 1 + items.length) % items.length;
-    items.forEach(i => i.classList.remove("selected"));
-    items[idx].classList.add("selected");
-  }
-});
-
-userInput.addEventListener("input", () => {
-  if (userInput.value.startsWith("/")) {
-    showCommandList(userInput.value);
-  } else {
-    hideCommandList();
-  }
-});
-
-function showCommandList(filter = "") {
-  const filtered = COMMANDS.filter(c => c.cmd.startsWith(filter));
-  if (filtered.length === 0) {
-    hideCommandList();
-    return;
-  }
-  commandList.innerHTML = filtered
-    .map(
-      (c, i) =>
-        `<div class="command-item${i === 0 ? " selected" : ""}" data-cmd="${c.cmd}"><b>${c.cmd}</b> – ${c.desc}</div>`
-    )
-    .join("");
-  commandList.style.display = "block";
-  commandList.querySelectorAll(".command-item").forEach(item => {
-    item.onclick = () => {
-      userInput.value = item.dataset.cmd + " ";
-      hideCommandList();
-      userInput.focus();
-    };
-  });
-}
-
-function hideCommandList() {
-  commandList.style.display = "none";
-  commandList.innerHTML = "";
-}
-
-function handleCommand(message) {
-  const cmd = COMMANDS.find(c => message.trim().startsWith(c.cmd));
-  if (cmd) {
-    cmd.action();
-    return true;
-  }
-  return false;
-}
 
 // Markdown rendering and code block copy support
 function appendMessage(role, content, log = true) {
@@ -158,7 +37,11 @@ function appendMessage(role, content, log = true) {
   }
   const msg = document.createElement("div");
   msg.className = `message ${role}`;
+
+  // Render markdown
   let html = marked.parse(content);
+
+  // Replace code blocks with copyable blocks
   html = html.replace(
     /<pre><code(?: class="language-\w+")?>([\s\S]*?)<\/code><\/pre>/g,
     (match, code) => {
@@ -173,6 +56,7 @@ function appendMessage(role, content, log = true) {
       `;
     }
   );
+
   msg.innerHTML = html;
   chat.appendChild(msg);
   chat.scrollTop = chat.scrollHeight;
@@ -463,6 +347,7 @@ function appendFileBlock(role, filename, content, log = true) {
     });
     block.appendChild(copyBtn);
   }
+
   chat.appendChild(block);
   chat.scrollTop = chat.scrollHeight;
   lucide.createIcons({ icons: ["file-text", "copy"] });
@@ -509,16 +394,6 @@ function handleSend() {
   const message = userInput.value.trim();
   if (!message && pendingFiles.length === 0) return;
 
-  // Command execution
-  if (message.startsWith("/")) {
-    if (handleCommand(message)) {
-      userInput.value = "";
-      autoResizeTextarea();
-      hideCommandList();
-      return;
-    }
-  }
-
   // Send files first
   if (pendingFiles.length > 0) {
     for (const pf of pendingFiles) {
@@ -531,6 +406,7 @@ function handleSend() {
     fileInput.value = "";
   }
 
+  
   // "More of that" feature
   if (message && isMoreOfThatTrigger(message)) {
     const lastAI = getLastAIMessage();
@@ -564,88 +440,154 @@ function handleSend() {
       toggleButtons(true);
       sendToAI(message);
     }
+  } else {
+    autoResizeTextarea();
+    toggleButtons(false);
+    saveChatHistory();
   }
-
   userInput.value = "";
   autoResizeTextarea();
-  hideCommandList();
-  saveChatHistory();
-}
-
-function toggleButtons(isSending) {
-  sendBtn.disabled = isSending;
-  stopBtn.style.display = isSending ? "inline-flex" : "none";
 }
 
 function handleStop() {
-  if (abortController) abortController.abort();
-  toggleButtons(false);
-  if (typingEl) {
-    typingEl.remove();
-    typingEl = null;
+  if (abortController) {
+    abortController.abort();
+    toggleButtons(false);
   }
 }
 
-function sendToAI(message) {
-  abortController = new AbortController();
+// AI streaming response
+function showThinking() {
+  if (typingEl) typingEl.remove();
   typingEl = document.createElement("div");
-  typingEl.className = "message bot typing";
-  typingEl.innerHTML = `<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>`;
+  typingEl.className = "message bot typing-animation";
+  typingEl.textContent = "Fall AI is thinking";
   chat.appendChild(typingEl);
   chat.scrollTop = chat.scrollHeight;
-  fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${GROQ_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "llama3-8b-8192",
-      messages: [
-        { role: "system", content: "You are Fall AI, a helpful assistant." },
-        ...getChatMessages(),
-        { role: "user", content: message }
-      ],
-      stream: false
-    }),
-    signal: abortController.signal
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (data.choices && data.choices.length > 0) {
-        appendMessage("bot", data.choices[0].message.content, true);
-      } else {
-        appendMessage("bot", "Sorry, I couldn't generate a response.", true);
-      }
-      toggleButtons(false);
-    })
-    .catch(e => {
-      if (e.name !== "AbortError") {
-        appendMessage("bot", "An error occurred while contacting the AI.", true);
-        toggleButtons(false);
-      }
-    });
 }
 
-function getChatMessages() {
-  const messages = [];
-  document.querySelectorAll("#chat .message.user, #chat .message.bot").forEach(msg => {
-    messages.push({
-      role: msg.classList.contains("user") ? "user" : "assistant",
-      content: msg.textContent
-    });
-  });
-  return messages;
-}
-
-// Scroll to bottom button
-scrollBtn.addEventListener("click", () => {
+function updateTypingIndicator(text) {
+  if (!typingEl) showThinking();
+  typingEl.textContent = text;
   chat.scrollTop = chat.scrollHeight;
+}
+
+async function sendToAI(message) {
+  showThinking();
+  abortController = new AbortController();
+  let botMsg = "";
+
+  try {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${GROQ_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "llama3-70b-8192",
+        messages: [
+          { role: "system", content: "You are Fall AI, a helpful assistant." },
+          { role: "user", content: message },
+        ],
+        stream: true,
+      }),
+      signal: abortController.signal,
+    });
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+
+    let done = false;
+    while (!done) {
+      const { value, done: streamDone } = await reader.read();
+      done = streamDone;
+      if (value) {
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n").filter((line) => line.trim() !== "");
+        for (const line of lines) {
+          if (line.startsWith("data:")) {
+            const data = line.replace("data: ", "");
+            if (data === "[DONE]") continue;
+            try {
+              const parsed = JSON.parse(data);
+              const token = parsed.choices?.[0]?.delta?.content;
+              if (token) {
+                botMsg += token;
+                updateTypingIndicator(botMsg);
+              }
+            } catch {}
+          }
+        }
+      }
+    }
+
+    if (typingEl) typingEl.remove();
+
+    appendMessage("bot", botMsg, true);
+  } catch (error) {
+    if (typingEl) typingEl.remove();
+    if (error.name === "AbortError") {
+      appendMessage("bot", "(Answer canceled)");
+    } else {
+      appendMessage("bot", "An error occurred.");
+    }
+  } finally {
+    toggleButtons(false);
+  }
+}
+
+function toggleButtons(loading) {
+  sendBtn.style.display = loading ? "none" : "inline-flex";
+  stopBtn.style.display = loading ? "inline-flex" : "none";
+}
+
+// Scroll button
+scrollBtn.addEventListener("click", () => {
+  chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" });
 });
 chat.addEventListener("scroll", () => {
-  if (chat.scrollTop + chat.clientHeight < chat.scrollHeight - 50) {
-    scrollBtn.style.display = "flex";
-  } else {
-    scrollBtn.style.display = "none";
+  scrollBtn.style.display =
+    chat.scrollTop + chat.clientHeight < chat.scrollHeight - 100 ? "flex" : "none";
+});
+
+// Init icons
+lucide.createIcons();
+
+// On load
+window.addEventListener("load", () => {
+  handleOAuthRedirect();
+  updateFileBtnState();
+
+// --- Welcome message only on first visit ---
+function showWelcomeIfFirstVisit() {
+  if (!localStorage.getItem("fallai_welcome_shown")) {
+    const welcomeMsg = `
+**Welcome to Fall.ai! ðŸ‘‹**
+
+Hereâ€™s how to use the site and the AI:
+
+1. **Type your question or message** in the chat box below and press Enter or click "Send".
+2. **Upload files** (optional) by clicking the paperclip icon. The AI can analyze text files and answer questions about them.
+3. **Login** with Discord or Google for saving your chat history and unlocking more features.
+4. **Clear chat** anytime with the trash icon.
+5. **Ask for more** by typing "more of that" or "please more" to get extended answers.
+
+**Tips:**
+- Use Markdown and code blocks for better formatting.
+- You can copy code snippets with the "Copy" button.
+- Your chat history is saved locally and (if logged in) to your account.
+
+Enjoy exploring Fall.ai! ðŸš€
+    `;
+    appendMessage("bot", welcomeMsg, false);
+    localStorage.setItem("fallai_welcome_shown", "1");
   }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  showWelcomeIfFirstVisit();
+});
+
+  
 });
