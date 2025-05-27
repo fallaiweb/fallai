@@ -25,7 +25,7 @@ body {
 .layout {
   display: flex;
   height: 100vh;
-  gap: 2.5rem; /* Mehr Abstand zwischen Sidebar und Main Content */
+  gap: 2.5rem;
 }
 
 /* Sidebar */
@@ -280,24 +280,24 @@ pre, .file-content pre {
   margin-bottom: 0.07em;
 }
 
-/* Chat Area */
+/* Chat Area - KOMPAKT */
 .chat-area {
   flex: 1;
   background: var(--bot-bg);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
-  padding: 2rem 1.5rem 2rem 1.5rem;
-  margin-bottom: 2rem;
+  padding: 1rem 0.7rem 1rem 0.7rem; /* Weniger Padding */
+  margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 0.7rem; /* Weniger Abstand zwischen Nachrichten */
   overflow-y: auto;
   min-height: 0;
   scrollbar-width: thin;
   scrollbar-color: var(--chat-scrollbar) transparent;
 }
 .chat-area::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 .chat-area::-webkit-scrollbar-thumb {
   background: var(--chat-scrollbar);
@@ -307,21 +307,21 @@ pre, .file-content pre {
   background: transparent;
 }
 .message {
-  padding: 1.2rem 1.7rem;
-  border-radius: 1.6rem;
+  padding: 0.6rem 1rem; /* Weniger Padding */
+  border-radius: 1.1rem;
   background: rgba(34,33,39,0.95);
-  font-size: 1.13rem;
-  margin-bottom: 0.5rem;
-  box-shadow: 0 2px 12px #0003;
-  border: 1.5px solid #35333c;
-  max-width: 75%;
+  font-size: 1rem; /* Weniger Schriftgröße */
+  margin-bottom: 0.3rem;
+  box-shadow: 0 2px 8px #0003;
+  border: 1.2px solid #35333c;
+  max-width: 85%; /* Mehr Platz nutzen */
   transition: background 0.18s;
 }
 .message.user {
   background: var(--user-bg);
   margin-left: auto;
-  border: 1.5px solid var(--accent);
-  box-shadow: 0 2px 18px #ffd58022;
+  border: 1.2px solid var(--accent);
+  box-shadow: 0 2px 12px #ffd58022;
 }
 .message.bot {
   background: var(--bot-bg);
