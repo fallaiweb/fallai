@@ -1,5 +1,5 @@
 :root {
-  --sidebar-width: 260px;
+  --sidebar-width: 280px;
   --main-bg: #19191d;
   --sidebar-bg: linear-gradient(145deg, #23222a 60%, #292830 100%);
   --accent: #ffd580;
@@ -34,39 +34,83 @@ body {
   background: var(--sidebar-bg);
   border-radius: var(--border-radius);
   margin: 2.5rem 0 2.5rem 2.5rem;
-  padding: 2.5rem 1.8rem 1.5rem 1.8rem;
+  padding: 1.5rem 1.2rem 1.2rem 1.2rem;
   box-shadow: var(--shadow);
   border: 1.5px solid #35333c;
   display: flex;
   flex-direction: column;
-  gap: 2.2rem;
+  gap: 1.5rem;
   min-width: 180px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
-.sidebar h2 {
-  font-size: 1.18rem;
+
+/* Login oben links */
+.sidebar-login {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.sidebar-login .user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: #23222a;
+  border-radius: 999px;
+  padding: 0.3em 1em;
+  border: 1px solid #28262c;
+}
+#user-avatar-sidebar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent);
+  background: #fff;
+}
+#username-sidebar {
+  font-size: 1rem;
+  color: #fff7e0;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+#login-btn-sidebar, #logout-btn-sidebar {
+  margin-top: 0.3em;
+  margin-bottom: 0.1em;
+}
+
+/* About Fall AI Bereich */
+.sidebar-about h2 {
+  font-size: 1.15rem;
   color: var(--accent);
-  margin-bottom: 1.2em;
   font-weight: 700;
   letter-spacing: 0.05em;
+  margin-bottom: 0.7em;
   background: linear-gradient(90deg, #ffd580 70%, #ffedb8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-.sidebar ul {
+.sidebar-about ul {
   color: #e0e0e0;
-  font-size: 1.03rem;
-  gap: 1.2em;
-  padding-left: 1.5em;
+  font-size: 1.01rem;
+  gap: 1em;
+  padding-left: 1em;
   opacity: 0.96;
   border-top: 1px solid #292830;
-  padding-top: 1.2em;
+  padding-top: 0.6em;
+  margin-bottom: 0.5em;
 }
-.sidebar li {
-  margin-bottom: 0.7em;
-  padding-left: 0.3em;
+.sidebar-about li {
+  margin-bottom: 0.5em;
+  padding-left: 0.2em;
   letter-spacing: 0.01em;
 }
-.sidebar li b, .sidebar li i {
+.sidebar-about li b, .sidebar-about li i {
   color: var(--accent);
 }
 
@@ -86,8 +130,8 @@ header {
   background: var(--sidebar-bg);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
-  padding: 1.8rem 2.5rem 1.3rem 2.5rem;
-  margin-bottom: 2rem;
+  padding: 1.2rem 2rem 1.1rem 2rem;
+  margin-bottom: 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -104,7 +148,7 @@ header h1 {
   -webkit-text-fill-color: transparent;
 }
 
-/* User Info */
+/* User Info im Header */
 .user-info {
   display: flex;
   align-items: center;
@@ -213,32 +257,32 @@ header h1 {
   background: #23222a;
   border: 1.5px solid #35333c;
   border-radius: 10px;
-  padding: 0.18em 0.25em;
-  margin: 0.1em 0;
+  padding: 0.28em 0.45em;
+  margin: 0.2em 0;
   display: flex;
   flex-direction: column;
-  gap: 0.05em;
+  gap: 0.09em;
   position: relative;
   word-break: break-all;
 }
 .file-block .file-header {
   display: flex;
   align-items: center;
-  gap: 0.25em;
-  font-size: 0.85em;
+  gap: 0.35em;
+  font-size: 0.89em;
   color: var(--accent);
-  margin-bottom: 0.04em;
+  margin-bottom: 0.07em;
 }
 .file-block .file-content {
   background: #18171c;
   border-radius: 5px;
-  padding: 0.10em 0.18em;
+  padding: 0.18em 0.35em;
   font-family: "Fira Mono", "Consolas", monospace;
   color: #ffd580;
-  font-size: 0.85em;
+  font-size: 0.89em;
   white-space: pre-wrap;
   overflow-x: auto;
-  margin-bottom: 0.04em;
+  margin-bottom: 0.07em;
 }
 .file-block .copy-btn {
   align-self: flex-end;
@@ -246,10 +290,10 @@ header h1 {
   color: var(--accent);
   border: 1px solid #35333c;
   border-radius: 6px;
-  font-size: 0.75em;
-  padding: 0.08em 0.5em;
+  font-size: 0.78em;
+  padding: 0.11em 0.7em;
   cursor: pointer;
-  margin-top: 0.04em;
+  margin-top: 0.07em;
   transition: background 0.12s;
 }
 .file-block .copy-btn:hover {
@@ -264,41 +308,40 @@ header h1 {
   background: #18171c;
   color: #ffd580;
   border-radius: 3px;
-  padding: 1px 3px;
+  padding: 2px 5px;
   font-family: "Fira Mono", "Consolas", monospace;
-  font-size: 0.93em;
 }
 .message a, .file-content a { color: #ffd580; text-decoration: underline; }
 pre, .file-content pre {
   background: #18171c;
   color: #ffd580;
   border-radius: 5px;
-  padding: 0.10em 0.18em;
+  padding: 0.18em 0.35em;
   font-family: "Fira Mono", "Consolas", monospace;
-  font-size: 0.80em;
+  font-size: 0.84em;
   white-space: pre-wrap;
   overflow-x: auto;
-  margin-bottom: 0.04em;
+  margin-bottom: 0.07em;
 }
 
-/* Chat Area - KOMPAKT */
+/* Chat Area – größer */
 .chat-area {
   flex: 1;
   background: var(--bot-bg);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
-  padding: 0.5rem 0.2rem 0.5rem 0.2rem; /* Weniger Padding */
-  margin-bottom: 0.5rem;
+  padding: 2rem 2.2rem 2rem 2.2rem;
+  margin-bottom: 1.2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem; /* Weniger Abstand zwischen Nachrichten */
+  gap: 1.2rem;
   overflow-y: auto;
   min-height: 0;
   scrollbar-width: thin;
   scrollbar-color: var(--chat-scrollbar) transparent;
 }
 .chat-area::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 .chat-area::-webkit-scrollbar-thumb {
   background: var(--chat-scrollbar);
@@ -307,28 +350,31 @@ pre, .file-content pre {
 .chat-area::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* Chat Bubble – höher & komfortabler */
 .message {
-  padding: 0.25rem 0.7rem; /* Sehr wenig Padding */
-  border-radius: 0.7rem;
+  padding: 1.3rem 2rem;
+  border-radius: 1.7rem;
   background: rgba(34,33,39,0.95);
-  font-size: 0.92rem; /* Kleine Schrift */
-  margin-bottom: 0.15rem;
-  box-shadow: 0 1px 4px #0002;
-  border: 1px solid #35333c;
-  max-width: 95%; /* Fast volle Breite */
+  font-size: 1.18rem;
+  margin-bottom: 0.7rem;
+  box-shadow: 0 2px 12px #0003;
+  border: 1.5px solid #35333c;
+  max-width: 78%;
   transition: background 0.18s;
-  line-height: 1.32;
+  line-height: 1.6;
 }
 .message.user {
   background: var(--user-bg);
   margin-left: auto;
-  border: 1px solid var(--accent);
-  box-shadow: 0 1px 6px #ffd58022;
+  border: 1.5px solid var(--accent);
+  box-shadow: 0 2px 18px #ffd58022;
 }
 .message.bot {
   background: var(--bot-bg);
   margin-right: auto;
 }
+
 .typing-animation {
   font-style: italic;
   opacity: 0.7;
@@ -371,26 +417,26 @@ footer {
   background: var(--sidebar-bg);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
-  padding: 1.1rem 1.2rem;
+  padding: 1.2rem 1.8rem;
   display: flex;
-  gap: 0.5rem;
+  gap: 0.9rem;
   align-items: center;
   border: 1.5px solid #35333c;
-  margin-top: 1rem;
+  margin-top: 1.2rem;
 }
 
 /* Input */
 textarea {
   background: #23222a;
   color: #ffd580;
-  border-radius: 1.2rem;
+  border-radius: 1.6rem;
   border: 1.5px solid #35333c;
-  font-size: 0.98rem;
-  padding: 0.6rem 1rem;
+  font-size: 1.09rem;
+  padding: 1rem 1.6rem;
   transition: box-shadow 0.15s;
   flex: 1;
-  min-height: 28px;
-  max-height: 70px;
+  min-height: 36px;
+  max-height: 120px;
   resize: none;
 }
 textarea:focus {
@@ -531,8 +577,8 @@ textarea:focus {
     gap: 0.8rem;
   }
   .chat-area {
-    padding: 0.2rem 0.1rem 0.2rem 0.1rem;
-    border-radius: 8px;
+    padding: 0.7rem 0.3rem 0.7rem 0.3rem;
+    border-radius: 12px;
   }
   header, footer {
     padding-left: 0.15rem;
