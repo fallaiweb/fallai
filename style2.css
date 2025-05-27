@@ -537,4 +537,54 @@ textarea:focus {
     padding-right: 0.15rem;
     border-radius: 12px;
   }
+/* --- Command List Dropdown --- */
+.command-list {
+  position: absolute;
+  left: 10px;
+  right: 110px; /* leaves space for send/stop buttons */
+  bottom: 60px;
+  background: #23272f;
+  color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+  z-index: 20;
+  min-width: 220px;
+  max-width: 420px;
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 6px 0;
+  font-size: 15px;
+  border: 1px solid #333;
+  transition: opacity 0.15s;
+}
+
+@media (max-width: 600px) {
+  .command-list {
+    left: 5px;
+    right: 5px;
+    max-width: unset;
+  }
+}
+
+.command-item {
+  padding: 9px 18px;
+  cursor: pointer;
+  transition: background 0.15s;
+  user-select: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.command-item.selected,
+.command-item:hover {
+  background: #374151;
+}
+
+.command-item b {
+  color: #e7a96f;
+  font-weight: 500;
+}
+
+  
 }
