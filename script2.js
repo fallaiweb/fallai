@@ -558,4 +558,36 @@ lucide.createIcons();
 window.addEventListener("load", () => {
   handleOAuthRedirect();
   updateFileBtnState();
+
+// --- Welcome message only on first visit ---
+function showWelcomeIfFirstVisit() {
+  if (!localStorage.getItem("fallai_welcome_shown")) {
+    const welcomeMsg = `
+**Welcome to Fall.ai! 👋**
+
+Here’s how to use the site and the AI:
+
+1. **Type your question or message** in the chat box below and press Enter or click "Send".
+2. **Upload files** (optional) by clicking the paperclip icon. The AI can analyze text files and answer questions about them.
+3. **Login** with Discord or Google for saving your chat history and unlocking more features.
+4. **Clear chat** anytime with the trash icon.
+5. **Ask for more** by typing "more of that" or "please more" to get extended answers.
+
+**Tips:**
+- Use Markdown and code blocks for better formatting.
+- You can copy code snippets with the "Copy" button.
+- Your chat history is saved locally and (if logged in) to your account.
+
+Enjoy exploring Fall.ai! 🚀
+    `;
+    appendMessage("bot", welcomeMsg, false);
+    localStorage.setItem("fallai_welcome_shown", "1");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  showWelcomeIfFirstVisit();
+});
+
+  
 });
