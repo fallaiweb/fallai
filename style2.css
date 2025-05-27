@@ -213,32 +213,32 @@ header h1 {
   background: #23222a;
   border: 1.5px solid #35333c;
   border-radius: 10px;
-  padding: 0.28em 0.45em;
-  margin: 0.2em 0;
+  padding: 0.18em 0.25em;
+  margin: 0.1em 0;
   display: flex;
   flex-direction: column;
-  gap: 0.09em;
+  gap: 0.05em;
   position: relative;
   word-break: break-all;
 }
 .file-block .file-header {
   display: flex;
   align-items: center;
-  gap: 0.35em;
-  font-size: 0.89em;
+  gap: 0.25em;
+  font-size: 0.85em;
   color: var(--accent);
-  margin-bottom: 0.07em;
+  margin-bottom: 0.04em;
 }
 .file-block .file-content {
   background: #18171c;
   border-radius: 5px;
-  padding: 0.18em 0.35em;
+  padding: 0.10em 0.18em;
   font-family: "Fira Mono", "Consolas", monospace;
   color: #ffd580;
-  font-size: 0.89em;
+  font-size: 0.85em;
   white-space: pre-wrap;
   overflow-x: auto;
-  margin-bottom: 0.07em;
+  margin-bottom: 0.04em;
 }
 .file-block .copy-btn {
   align-self: flex-end;
@@ -246,10 +246,10 @@ header h1 {
   color: var(--accent);
   border: 1px solid #35333c;
   border-radius: 6px;
-  font-size: 0.78em;
-  padding: 0.11em 0.7em;
+  font-size: 0.75em;
+  padding: 0.08em 0.5em;
   cursor: pointer;
-  margin-top: 0.07em;
+  margin-top: 0.04em;
   transition: background 0.12s;
 }
 .file-block .copy-btn:hover {
@@ -264,20 +264,21 @@ header h1 {
   background: #18171c;
   color: #ffd580;
   border-radius: 3px;
-  padding: 2px 5px;
+  padding: 1px 3px;
   font-family: "Fira Mono", "Consolas", monospace;
+  font-size: 0.93em;
 }
 .message a, .file-content a { color: #ffd580; text-decoration: underline; }
 pre, .file-content pre {
   background: #18171c;
   color: #ffd580;
   border-radius: 5px;
-  padding: 0.18em 0.35em;
+  padding: 0.10em 0.18em;
   font-family: "Fira Mono", "Consolas", monospace;
-  font-size: 0.84em;
+  font-size: 0.80em;
   white-space: pre-wrap;
   overflow-x: auto;
-  margin-bottom: 0.07em;
+  margin-bottom: 0.04em;
 }
 
 /* Chat Area - KOMPAKT */
@@ -286,11 +287,11 @@ pre, .file-content pre {
   background: var(--bot-bg);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
-  padding: 1rem 0.7rem 1rem 0.7rem; /* Weniger Padding */
-  margin-bottom: 1rem;
+  padding: 0.5rem 0.2rem 0.5rem 0.2rem; /* Weniger Padding */
+  margin-bottom: 0.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.7rem; /* Weniger Abstand zwischen Nachrichten */
+  gap: 0.3rem; /* Weniger Abstand zwischen Nachrichten */
   overflow-y: auto;
   min-height: 0;
   scrollbar-width: thin;
@@ -307,21 +308,22 @@ pre, .file-content pre {
   background: transparent;
 }
 .message {
-  padding: 0.6rem 1rem; /* Weniger Padding */
-  border-radius: 1.1rem;
+  padding: 0.25rem 0.7rem; /* Sehr wenig Padding */
+  border-radius: 0.7rem;
   background: rgba(34,33,39,0.95);
-  font-size: 1rem; /* Weniger Schriftgröße */
-  margin-bottom: 0.3rem;
-  box-shadow: 0 2px 8px #0003;
-  border: 1.2px solid #35333c;
-  max-width: 85%; /* Mehr Platz nutzen */
+  font-size: 0.92rem; /* Kleine Schrift */
+  margin-bottom: 0.15rem;
+  box-shadow: 0 1px 4px #0002;
+  border: 1px solid #35333c;
+  max-width: 95%; /* Fast volle Breite */
   transition: background 0.18s;
+  line-height: 1.32;
 }
 .message.user {
   background: var(--user-bg);
   margin-left: auto;
-  border: 1.2px solid var(--accent);
-  box-shadow: 0 2px 12px #ffd58022;
+  border: 1px solid var(--accent);
+  box-shadow: 0 1px 6px #ffd58022;
 }
 .message.bot {
   background: var(--bot-bg);
@@ -369,26 +371,26 @@ footer {
   background: var(--sidebar-bg);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
-  padding: 1.4rem 2rem;
+  padding: 1.1rem 1.2rem;
   display: flex;
-  gap: 0.9rem;
+  gap: 0.5rem;
   align-items: center;
   border: 1.5px solid #35333c;
-  margin-top: 2rem;
+  margin-top: 1rem;
 }
 
 /* Input */
 textarea {
   background: #23222a;
   color: #ffd580;
-  border-radius: 1.6rem;
+  border-radius: 1.2rem;
   border: 1.5px solid #35333c;
-  font-size: 1.05rem;
-  padding: 1rem 1.6rem;
+  font-size: 0.98rem;
+  padding: 0.6rem 1rem;
   transition: box-shadow 0.15s;
   flex: 1;
-  min-height: 36px;
-  max-height: 120px;
+  min-height: 28px;
+  max-height: 70px;
   resize: none;
 }
 textarea:focus {
@@ -529,8 +531,8 @@ textarea:focus {
     gap: 0.8rem;
   }
   .chat-area {
-    padding: 0.7rem 0.3rem 0.7rem 0.3rem;
-    border-radius: 12px;
+    padding: 0.2rem 0.1rem 0.2rem 0.1rem;
+    border-radius: 8px;
   }
   header, footer {
     padding-left: 0.15rem;
