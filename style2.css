@@ -1,540 +1,529 @@
-:root {
-  --sidebar-width: 260px;
-  --main-bg: #19191d;
-  --sidebar-bg: linear-gradient(145deg, #23222a 60%, #292830 100%);
-  --accent: #ffd580;
-  --accent-glow: #ffedb8;
-  --bot-bg: linear-gradient(120deg, #222127 80%, #292830 100%);
-  --user-bg: linear-gradient(90deg, #23282e 80%, #35333c 100%);
-  --chat-scrollbar: #39373f;
-  --input-bg: #23222a;
-  --border-radius: 24px;
-  --shadow: 0 6px 32px #0006, 0 0px 0px #0000;
-  --font-main: 'Inter', 'Segoe UI', Arial, sans-serif;
-}
+const GROQ_API_KEY = "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";
+const DISCORD_CLIENT_ID = "1376180153654448180";
+const GOOGLE_CLIENT_ID = "430741103805-r80p5k14p9e66srupo4jvdle4pen1fqb.apps.googleusercontent.com";
+const REDIRECT_URI = "https://fallai.netlify.app";
+const DISCORD_WEBHOOK = "https://ptb.discord.com/api/webhooks/1376582619294208122/No5f6xr5L6e4c3ZFNL6YbIoP7MnSFw6X_0YBG7s7jjeej6Mhlu-yd2gPJ_tmUFu2tIF2";
 
-/* General */
-body {
-  font-family: var(--font-main);
-  background: var(--main-bg);
-  color: #f8f8f8;
-  min-height: 100vh;
-  letter-spacing: 0.01em;
-}
+const chat = document.getElementById("chat");
+const userInput = document.getElementById("user-input");
+const sendBtn = document.getElementById("send-btn");
+const stopBtn = document.getElementById("stop-btn");
+const scrollBtn = document.getElementById("scroll-btn");
+const loginBtn = document.getElementById("login-btn");
+const logoutBtn = document.getElementById("logout-btn");
+const usernameSpan = document.getElementById("username");
+const userAvatar = document.getElementById("user-avatar");
+const loginModal = document.getElementById("login-modal");
+const loginGoogleBtn = document.getElementById("login-google");
+const loginDiscordBtn = document.getElementById("login-discord");
+const loginCancelBtn = document.getElementById("login-cancel");
+const fileBtn = document.getElementById("file-btn");
+const fileInput = document.getElementById("file-input");
+const filePreview = document.getElementById("file-preview");
+const clearBtn = document.getElementById("clear-btn");
+const confirmModal = document.getElementById("confirm-modal");
+const confirmYes = document.getElementById("confirm-yes");
+const confirmNo = document.getElementById("confirm-no");
 
-.layout {
-  display: flex;
-  height: 100vh;
-  gap: 2.5rem; /* Mehr Abstand zwischen Sidebar und Main Content */
-}
+let abortController = null;
+let typingEl = null;
+let pendingFiles = [];
 
-/* Sidebar */
-.sidebar {
-  width: var(--sidebar-width);
-  background: var(--sidebar-bg);
-  border-radius: var(--border-radius);
-  margin: 2.5rem 0 2.5rem 2.5rem;
-  padding: 2.5rem 1.8rem 1.5rem 1.8rem;
-  box-shadow: var(--shadow);
-  border: 1.5px solid #35333c;
-  display: flex;
-  flex-direction: column;
-  gap: 2.2rem;
-  min-width: 180px;
-}
-.sidebar h2 {
-  font-size: 1.18rem;
-  color: var(--accent);
-  margin-bottom: 1.2em;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  background: linear-gradient(90deg, #ffd580 70%, #ffedb8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.sidebar ul {
-  color: #e0e0e0;
-  font-size: 1.03rem;
-  gap: 1.2em;
-  padding-left: 1.5em;
-  opacity: 0.96;
-  border-top: 1px solid #292830;
-  padding-top: 1.2em;
-}
-.sidebar li {
-  margin-bottom: 0.7em;
-  padding-left: 0.3em;
-  letter-spacing: 0.01em;
-}
-.sidebar li b, .sidebar li i {
-  color: var(--accent);
-}
-
-/* Main Content */
-.main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  margin: 2.5rem 2.5rem 2.5rem 0;
-  gap: 2.5rem;
-  border-left: 1.5px solid #292830;
-}
-
-/* Header */
-header {
-  background: var(--sidebar-bg);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
-  padding: 1.8rem 2.5rem 1.3rem 2.5rem;
-  margin-bottom: 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1.5px solid #35333c;
-}
-header h1 {
-  font-size: 2.1rem;
-  color: var(--accent);
-  font-weight: 800;
-  letter-spacing: 2px;
-  margin: 0;
-  background: linear-gradient(90deg, #ffd580 70%, #ffedb8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* User Info */
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  background: #23222a;
-  border-radius: 999px;
-  padding: 0.3em 1em;
-  border: 1px solid #28262c;
-}
-#user-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--accent);
-  background: #fff;
-  margin-left: 0.2rem;
-}
-#username {
-  font-size: 1rem;
-  color: #fff7e0;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 500;
-}
-
-/* Auth/Action Buttons */
-.plain-auth-btn, #file-btn, footer button {
-  background: linear-gradient(90deg, #35333c 0%, #292830 100%);
-  color: var(--accent);
-  border: 1.5px solid #39373f;
-  border-radius: 999px;
-  padding: 0.5em 1.3em;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: background 0.18s, color 0.18s, border 0.18s;
-  margin: 0 0.2em;
-  outline: none;
-  cursor: pointer;
-  letter-spacing: 0.01em;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5em;
-}
-.plain-auth-btn:hover, #file-btn:hover, footer button:hover {
-  background: linear-gradient(90deg, #292830 0%, #35333c 100%);
-  color: #ffd580;
-  border-color: var(--accent);
-}
-.plain-auth-btn:active, #file-btn:active, footer button:active {
-  background: #18171c;
-  color: #ffd580;
-  border-color: #ffd580;
-}
-
-/* File Preview (above textarea) */
-#file-preview {
-  display: flex;
-  align-items: center;
-  gap: 0.7em;
-  margin-right: 0.5em;
-  margin-bottom: 0.1em;
-  min-width: 0;
-  max-width: 250px;
-}
-.file-preview-block {
-  display: flex;
-  align-items: center;
-  gap: 0.4em;
-  background: #23222a;
-  border: 1.5px solid #35333c;
-  border-radius: 999px;
-  padding: 0.18em 0.7em;
-  min-width: 0;
-  max-width: 250px;
-  overflow: hidden;
-}
-.file-preview-block .file-preview-filename {
-  color: var(--accent);
-  font-size: 0.95em;
-  max-width: 110px;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-.file-preview-block .file-preview-remove {
-  background: none;
-  border: none;
-  color: #aaa;
-  cursor: pointer;
-  margin-left: 0.15em;
-  font-size: 1.08em;
-  padding: 0.15em;
-  border-radius: 4px;
-  transition: background 0.13s;
-}
-.file-preview-block .file-preview-remove:hover {
-  background: #2e2e2e;
-  color: var(--accent);
-}
-
-/* File Block (in chat) - compact */
-.file-block {
-  background: #23222a;
-  border: 1.5px solid #35333c;
-  border-radius: 10px;
-  padding: 0.28em 0.45em;
-  margin: 0.2em 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.09em;
-  position: relative;
-  word-break: break-all;
-}
-.file-block .file-header {
-  display: flex;
-  align-items: center;
-  gap: 0.35em;
-  font-size: 0.89em;
-  color: var(--accent);
-  margin-bottom: 0.07em;
-}
-.file-block .file-content {
-  background: #18171c;
-  border-radius: 5px;
-  padding: 0.18em 0.35em;
-  font-family: "Fira Mono", "Consolas", monospace;
-  color: #ffd580;
-  font-size: 0.89em;
-  white-space: pre-wrap;
-  overflow-x: auto;
-  margin-bottom: 0.07em;
-}
-.file-block .copy-btn {
-  align-self: flex-end;
-  background: #23222a;
-  color: var(--accent);
-  border: 1px solid #35333c;
-  border-radius: 6px;
-  font-size: 0.78em;
-  padding: 0.11em 0.7em;
-  cursor: pointer;
-  margin-top: 0.07em;
-  transition: background 0.12s;
-}
-.file-block .copy-btn:hover {
-  background: #35333c;
-  color: #ffd580;
-}
-
-/* Markdown support */
-.message strong, .file-content strong { font-weight: bold; }
-.message em, .file-content em { font-style: italic; }
-.message code, .file-content code {
-  background: #18171c;
-  color: #ffd580;
-  border-radius: 3px;
-  padding: 2px 5px;
-  font-family: "Fira Mono", "Consolas", monospace;
-}
-.message a, .file-content a { color: #ffd580; text-decoration: underline; }
-pre, .file-content pre {
-  background: #18171c;
-  color: #ffd580;
-  border-radius: 5px;
-  padding: 0.18em 0.35em;
-  font-family: "Fira Mono", "Consolas", monospace;
-  font-size: 0.84em;
-  white-space: pre-wrap;
-  overflow-x: auto;
-  margin-bottom: 0.07em;
-}
-
-/* Chat Area */
-.chat-area {
-  flex: 1;
-  background: var(--bot-bg);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
-  padding: 2rem 1.5rem 2rem 1.5rem;
-  margin-bottom: 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-  overflow-y: auto;
-  min-height: 0;
-  scrollbar-width: thin;
-  scrollbar-color: var(--chat-scrollbar) transparent;
-}
-.chat-area::-webkit-scrollbar {
-  width: 10px;
-}
-.chat-area::-webkit-scrollbar-thumb {
-  background: var(--chat-scrollbar);
-  border-radius: 7px;
-}
-.chat-area::-webkit-scrollbar-track {
-  background: transparent;
-}
-.message {
-  padding: 1.2rem 1.7rem;
-  border-radius: 1.6rem;
-  background: rgba(34,33,39,0.95);
-  font-size: 1.13rem;
-  margin-bottom: 0.5rem;
-  box-shadow: 0 2px 12px #0003;
-  border: 1.5px solid #35333c;
-  max-width: 75%;
-  transition: background 0.18s;
-}
-.message.user {
-  background: var(--user-bg);
-  margin-left: auto;
-  border: 1.5px solid var(--accent);
-  box-shadow: 0 2px 18px #ffd58022;
-}
-.message.bot {
-  background: var(--bot-bg);
-  margin-right: auto;
-}
-.typing-animation {
-  font-style: italic;
-  opacity: 0.7;
-}
-.typing-animation::after {
-  content: '...';
-  animation: dots 1.2s infinite steps(3);
-}
-@keyframes dots {
-  0% { content: ''; }
-  33% { content: '.'; }
-  66% { content: '..'; }
-  100% { content: '...'; }
-}
-
-/* Scroll to bottom button */
-.scroll-to-bottom {
-  position: fixed;
-  bottom: 80px;
-  right: 20px;
-  background: var(--accent);
-  padding: 10px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: none;
-  z-index: 999;
-  transition: background 0.2s, box-shadow 0.2s;
-}
-.scroll-to-bottom:hover {
-  background: #ffe6a0;
-}
-.scroll-to-bottom svg {
-  width: 22px;
-  height: 22px;
-  color: #18171c;
-}
-
-/* Footer */
-footer {
-  background: var(--sidebar-bg);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
-  padding: 1.4rem 2rem;
-  display: flex;
-  gap: 0.9rem;
-  align-items: center;
-  border: 1.5px solid #35333c;
-  margin-top: 2rem;
-}
-
-/* Input */
-textarea {
-  background: #23222a;
-  color: #ffd580;
-  border-radius: 1.6rem;
-  border: 1.5px solid #35333c;
-  font-size: 1.05rem;
-  padding: 1rem 1.6rem;
-  transition: box-shadow 0.15s;
-  flex: 1;
-  min-height: 36px;
-  max-height: 120px;
-  resize: none;
-}
-textarea:focus {
-  outline: 2px solid var(--accent);
-}
-
-/* Modals */
-.login-modal, .confirm-modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(24, 23, 28, 0.65);
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-.login-modal.active, .confirm-modal.active {
-  display: flex;
-}
-.login-modal-content, .confirm-modal-content {
-  background: #23222a;
-  border-radius: 18px;
-  padding: 28px 24px 18px 24px;
-  box-shadow: 0 8px 32px #000a;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
-  min-width: 220px;
-  text-align: center;
-  border: 1.5px solid #39373f;
-}
-.login-modal-title, .confirm-modal-title {
-  color: var(--accent);
-  font-size: 1.17rem;
-  margin-bottom: 4px;
-  font-weight: bold;
-  background: linear-gradient(90deg, #ffd580 70%, #ffedb8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.login-provider-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--accent);
-  color: #18171c;
-  border: none;
-  border-radius: 999px;
-  padding: 9px 28px;
-  font-size: 1.01rem;
-  cursor: pointer;
-  transition: background 0.2s;
-  width: 100%;
-  justify-content: center;
-  min-width: 150px;
-  font-weight: 600;
-}
-.login-provider-btn img {
-  width: 22px; height: 22px; display: inline-block;
-}
-.login-provider-btn:hover {
-  background: #ffe6a0;
-  color: #18171c;
-}
-.login-cancel-btn {
-  margin-top: 5px;
-  background: none;
-  color: #aaa;
-  border: none;
-  font-size: 0.98rem;
-  cursor: pointer;
-  padding: 4px 0 0 0;
-}
-.login-cancel-btn:hover {
-  color: var(--accent);
-}
-
-.confirm-modal-content {
-  gap: 1.1em;
-}
-.confirm-modal-text {
-  color: #ffd580;
-  font-size: 0.97rem;
-  margin-bottom: 0.4em;
-  opacity: 0.92;
-}
-.confirm-modal-actions {
-  display: flex;
-  gap: 1em;
-  justify-content: center;
-}
-.confirm-btn-yes, .confirm-btn-no {
-  padding: 0.45em 1.4em;
-  border-radius: 999px;
-  border: none;
-  font-size: 1.01rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.confirm-btn-yes {
-  background: var(--accent);
-  color: #18171c;
-}
-.confirm-btn-yes:hover {
-  background: #ffe6a0;
-}
-.confirm-btn-no {
-  background: #35333c;
-  color: #ffd580;
-}
-.confirm-btn-no:hover {
-  background: #39373f;
-}
-
-/* Responsive */
-@media (max-width: 900px) {
-  .sidebar {
-    display: none;
+// Markdown rendering and code block copy support
+function appendMessage(role, content, log = true) {
+  if (typingEl && role === "bot") {
+    typingEl.remove();
+    typingEl = null;
   }
-  .main-content {
-    width: 100vw;
-    margin: 2rem 0;
-    gap: 1.5rem;
-    border-left: none;
-  }
-  header, footer {
-    padding-left: 0.7rem;
-    padding-right: 0.7rem;
-    border-radius: 18px;
+  const msg = document.createElement("div");
+  msg.className = `message ${role}`;
+
+  // Render markdown
+  let html = marked.parse(content);
+
+  // Replace code blocks with copyable blocks
+  html = html.replace(
+    /<pre><code(?: class="language-\w+")?>([\s\S]*?)<\/code><\/pre>/g,
+    (match, code) => {
+      const clean = code.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+      const id = "codeblock-" + Math.random().toString(36).substr(2, 9);
+      return `
+        <div class="file-block" data-role="${role}" data-filename="Fall.ai" data-content="${clean.replace(/"/g, '&quot;')}">
+          <div class="file-header"><i data-lucide="file-text"></i> Fall.ai</div>
+          <div class="file-content" id="${id}"><pre>${code}</pre></div>
+          <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('${id}').innerText); this.textContent='Copied!'; setTimeout(()=>this.innerHTML='<i data-lucide=copy></i> Copy',1200);"><i data-lucide="copy"></i> Copy</button>
+        </div>
+      `;
+    }
+  );
+
+  msg.innerHTML = html;
+  chat.appendChild(msg);
+  chat.scrollTop = chat.scrollHeight;
+  lucide.createIcons({ icons: ["file-text", "copy"] });
+  saveChatHistory();
+  if (role === "bot" && log) {
+    const user = JSON.parse(localStorage.getItem("user_data"));
+    logToDiscord("AI Response", content, user);
   }
 }
-@media (max-width: 600px) {
-  .main-content {
-    width: 100vw;
-    margin: 0;
-    gap: 0.8rem;
-  }
-  .chat-area {
-    padding: 0.7rem 0.3rem 0.7rem 0.3rem;
-    border-radius: 12px;
-  }
-  header, footer {
-    padding-left: 0.15rem;
-    padding-right: 0.15rem;
-    border-radius: 12px;
+
+// Utility Functions
+function logToDiscord(action, description, user = null) {
+  const embed = {
+    title: action,
+    description: description,
+    color: 0xe7a96f,
+    timestamp: new Date().toISOString(),
+    ...(user && { author: { name: user.name, icon_url: user.avatar } }),
+  };
+  fetch(DISCORD_WEBHOOK, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ embeds: [embed] }),
+  }).catch(() => {});
+}
+
+function updateFileBtnState() {
+  const user = JSON.parse(localStorage.getItem("user_data"));
+  fileBtn.disabled = !user;
+}
+updateFileBtnState();
+
+function updateUIForUser(user) {
+  usernameSpan.textContent = user.name;
+  userAvatar.src = user.avatar;
+  userAvatar.style.display = "inline-block";
+  loginBtn.style.display = "none";
+  logoutBtn.style.display = "inline-flex";
+  updateFileBtnState();
+  loadChatHistory();
+}
+
+// Login/Logout/Modal code
+loginBtn.addEventListener("click", () => loginModal.classList.add("active"));
+loginCancelBtn.addEventListener("click", () => loginModal.classList.remove("active"));
+loginModal.addEventListener("click", (e) => {
+  if (e.target === loginModal) loginModal.classList.remove("active");
+});
+loginGoogleBtn.addEventListener("click", () => {
+  loginModal.classList.remove("active");
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    response_type: "token",
+    scope: "openid profile email",
+  });
+  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+});
+loginDiscordBtn.addEventListener("click", () => {
+  loginModal.classList.remove("active");
+  const params = new URLSearchParams({
+    client_id: DISCORD_CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    response_type: "token",
+    scope: "identify email",
+  });
+  window.location.href = `https://discord.com/api/oauth2/authorize?${params.toString()}`;
+});
+logoutBtn.addEventListener("click", () => {
+  const user = JSON.parse(localStorage.getItem("user_data"));
+  logToDiscord("Logout", "User logged out.", user);
+  localStorage.removeItem("user_data");
+  usernameSpan.textContent = "Guest";
+  userAvatar.style.display = "none";
+  loginBtn.style.display = "inline-flex";
+  logoutBtn.style.display = "none";
+  clearChatUI();
+  updateFileBtnState();
+});
+
+// Confirm Modal for Clear Chat
+clearBtn.addEventListener("click", () => {
+  confirmModal.classList.add("active");
+  lucide.createIcons({ icons: ["alert-triangle"] });
+});
+confirmYes.addEventListener("click", () => {
+  confirmModal.classList.remove("active");
+  const key = getChatStorageKey();
+  if (key) localStorage.removeItem(key);
+  clearChatUI();
+  const user = JSON.parse(localStorage.getItem("user_data"));
+  appendMessage("bot", "Chat history was cleared.", false);
+  logToDiscord("Chat Cleared", "User cleared their chat history.", user);
+});
+confirmNo.addEventListener("click", () => {
+  confirmModal.classList.remove("active");
+});
+confirmModal.addEventListener("click", (e) => {
+  if (e.target === confirmModal) confirmModal.classList.remove("active");
+});
+
+// OAuth token handling
+function handleOAuthRedirect() {
+  if (window.location.hash) {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get("access_token");
+    if (accessToken) {
+      fetch("https://discord.com/api/users/@me", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+        .then((res) => (res.ok ? res.json() : Promise.reject()))
+        .then((user) => {
+          saveUser({
+            id: user.id,
+            name: `${user.username}#${user.discriminator}`,
+            avatar: user.avatar
+              ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+              : "https://cdn.discordapp.com/embed/avatars/0.png",
+            provider: "discord",
+          });
+          showWelcomeMessage();
+        })
+        .catch(() => {
+          fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          })
+            .then((res) => res.json())
+            .then((user) => {
+              saveUser({
+                id: user.sub || user.email || user.name,
+                name: user.name,
+                avatar: user.picture,
+                provider: "google",
+              });
+              showWelcomeMessage();
+            })
+            .catch(() => alert("Login failed."));
+        });
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else {
+      const user = JSON.parse(localStorage.getItem("user_data"));
+      if (user) {
+        updateUIForUser(user);
+        showWelcomeMessage();
+      }
+    }
+  } else {
+    const user = JSON.parse(localStorage.getItem("user_data"));
+    if (user) {
+      updateUIForUser(user);
+      showWelcomeMessage();
+    }
   }
 }
+
+function saveUser(user) {
+  localStorage.setItem("user_data", JSON.stringify(user));
+  updateUIForUser(user);
+  logToDiscord("Login", `User logged in via ${user.provider}.`, user);
+}
+
+// User ID and chat storage key
+function getUserId() {
+  const user = JSON.parse(localStorage.getItem("user_data"));
+  if (!user) return null;
+  if (user.provider === "discord") return "discord_" + user.id;
+  if (user.provider === "google") return "google_" + user.id;
+  return null;
+}
+
+function getChatStorageKey() {
+  const id = getUserId();
+  return id ? `chat_history_${id}` : null;
+}
+
+// Chat history save/load/clear
+function saveChatHistory() {
+  const key = getChatStorageKey();
+  if (!key) return;
+  const messages = [];
+  document.querySelectorAll("#chat .message, #chat .file-block").forEach((msg) => {
+    if (msg.classList.contains("file-block")) {
+      messages.push({
+        role: msg.dataset.role,
+        file: true,
+        filename: msg.dataset.filename,
+        content: msg.dataset.content,
+      });
+    } else {
+      messages.push({
+        role: msg.classList.contains("user") ? "user" : "bot",
+        content: msg.textContent,
+      });
+    }
+  });
+  localStorage.setItem(key, JSON.stringify(messages));
+}
+
+function loadChatHistory() {
+  const key = getChatStorageKey();
+  if (!key) return;
+  const messages = JSON.parse(localStorage.getItem(key) || "[]");
+  clearChatUI();
+  for (const msg of messages) {
+    if (msg.file) {
+      appendFileBlock(msg.role, msg.filename, msg.content, false);
+    } else {
+      appendMessage(msg.role, msg.content, false);
+    }
+  }
+}
+
+function clearChatUI() {
+  chat.innerHTML = "";
+}
+
+// File upload preview
+fileBtn.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", () => {
+  pendingFiles = [];
+  filePreview.innerHTML = "";
+  const files = Array.from(fileInput.files);
+  for (const file of files) {
+    pendingFiles.push({ file, filename: file.name });
+    addFilePreview(file.name, pendingFiles.length - 1);
+  }
+  lucide.createIcons({ icons: ["file-text", "x"] });
+});
+function addFilePreview(filename, idx) {
+  const block = document.createElement("div");
+  block.className = "file-preview-block";
+  block.innerHTML = `<i data-lucide="file-text"></i><span class="file-preview-filename">${filename}</span>
+    <button class="file-preview-remove" title="Remove" data-idx="${idx}"><i data-lucide="x"></i></button>`;
+  filePreview.appendChild(block);
+  block.querySelector(".file-preview-remove").onclick = () => removePendingFile(idx);
+}
+function removePendingFile(idx) {
+  pendingFiles.splice(idx, 1);
+  filePreview.innerHTML = "";
+  pendingFiles.forEach((f, i) => addFilePreview(f.filename, i));
+  lucide.createIcons({ icons: ["file-text", "x"] });
+  if (pendingFiles.length === 0) fileInput.value = "";
+}
+
+// "More of that" feature
+function isMoreOfThatTrigger(text) {
+  const triggers = [
+    "more of that",
+    "please more",
+    "more please",
+    "bitte mehr davon",
+    "mehr davon",
+    "noch mehr davon",
+    "mehr bitte"
+  ];
+  const normalized = text.trim().toLowerCase();
+  return triggers.some(trigger => normalized === trigger);
+}
+function getLastAIMessage() {
+  const messages = Array.from(chat.querySelectorAll(".message.bot, .file-block"));
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const el = messages[i];
+    if (el.classList.contains("message") && el.classList.contains("bot")) {
+      return el.textContent;
+    }
+    if (el.classList.contains("file-block") && el.dataset.role === "bot") {
+      return el.dataset.content || "";
+    }
+  }
+  return null;
+}
+
+// File block for file uploads
+function appendFileBlock(role, filename, content, log = true) {
+  const block = document.createElement("div");
+  block.className = "file-block";
+  block.dataset.role = role;
+  block.dataset.filename = filename;
+  block.dataset.content = content;
+
+  const header = document.createElement("div");
+  header.className = "file-header";
+  header.innerHTML = `<i data-lucide="file-text"></i> ${filename}`;
+  block.appendChild(header);
+
+  if (content && content.length > 0) {
+    const fileContent = document.createElement("div");
+    fileContent.className = "file-content";
+    fileContent.textContent = content;
+    block.appendChild(fileContent);
+
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "copy-btn";
+    copyBtn.innerHTML = `<i data-lucide="copy"></i> Copy`;
+    copyBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText(content);
+      copyBtn.textContent = "Copied!";
+      setTimeout(() => (copyBtn.innerHTML = `<i data-lucide="copy"></i> Copy`), 1200);
+      lucide.createIcons({ icons: ["copy"] });
+    });
+    block.appendChild(copyBtn);
+  }
+
+  chat.appendChild(block);
+  chat.scrollTop = chat.scrollHeight;
+  lucide.createIcons({ icons: ["file-text", "copy"] });
+  saveChatHistory();
+  if (log) {
+    const user = JSON.parse(localStorage.getItem("user_data"));
+    logToDiscord("File (Text/File)", `User sent a file: **${filename}**${content ? `\n\`\`\`\n${content.slice(0, 1000)}\n\`\`\`` : ""}`, user);
+  }
+}
+
+// Code block detection
+function isCodeBlock(text) {
+  return /^```
+}
+function getCodeContent(text) {
+  return text.trim().replace(/^```/, '').replace(/```
+}
+
+// Chat sending logic
+sendBtn.addEventListener("click", handleSend);
+stopBtn.addEventListener("click", handleStop);
+userInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    handleSend();
+  }
+});
+userInput.addEventListener("input", autoResizeTextarea);
+
+function autoResizeTextarea() {
+  userInput.style.height = "auto";
+  const maxHeight = 100;
+  if (userInput.scrollHeight > maxHeight) {
+    userInput.style.height = maxHeight + "px";
+    userInput.style.overflowY = "auto";
+  } else {
+    userInput.style.height = userInput.scrollHeight + "px";
+    userInput.style.overflowY = "hidden";
+  }
+}
+autoResizeTextarea();
+
+function handleSend() {
+  const message = userInput.value.trim();
+  if (!message && pendingFiles.length === 0) return;
+
+  // Send files first
+  if (pendingFiles.length > 0) {
+    for (const pf of pendingFiles) {
+      appendFileBlock("user", pf.filename, "", true);
+      const user = JSON.parse(localStorage.getItem("user_data"));
+      logToDiscord("File Upload", `User sent file: **${pf.filename}**`, user);
+    }
+    pendingFiles = [];
+    filePreview.innerHTML = "";
+    fileInput.value = "";
+  }
+
+  // "More of that" feature
+  if (message && isMoreOfThatTrigger(message)) {
+    const lastAI = getLastAIMessage();
+    if (lastAI) {
+      appendMessage("user", message, true);
+      logToDiscord("Message", `User sent: ${message} (triggered repeat of last AI message)`, JSON.parse(localStorage.getItem("user_data")));
+      sendToAI(lastAI);
+    } else {
+      appendMessage("user", message, true);
+      appendMessage("bot", "There is no previous AI message to repeat.", true);
+    }
+    userInput.value = "";
+    autoResizeTextarea();
+    toggleButtons(false);
+    saveChatHistory();
+    return;
+  }
+
+  // Send code block or normal message
+  if (message) {
+    if (isCodeBlock(message)) {
+      appendMessage("user", message, true);
+      const user = JSON.parse(localStorage.getItem("user_data"));
+      logToDiscord("Code Block", `User sent code:\n\`\`\`\n${getCodeContent(message).slice(0, 1000)}\n\`\`\``, user);
+      toggleButtons(false);
+      saveChatHistory();
+    } else {
+      appendMessage("user", message, true);
+      const user = JSON.parse(localStorage.getItem("user_data"));
+      logToDiscord("Message", `User sent: ${message}`, user);
+      toggleButtons(false);
+      saveChatHistory();
+    }
+    sendToAI(message);
+    userInput.value = "";
+    autoResizeTextarea();
+  }
+}
+
+function toggleButtons(isSending) {
+  sendBtn.disabled = isSending;
+  stopBtn.style.display = isSending ? "inline-block" : "none";
+  userInput.disabled = isSending;
+}
+
+function handleStop() {
+  if (abortController) {
+    abortController.abort();
+    abortController = null;
+    toggleButtons(false);
+  }
+}
+
+// Dummy sendToAI function (muss durch echte AI-Integration ersetzt werden)
+function sendToAI(message) {
+  toggleButtons(true);
+  appendMessage("bot", "Processing your request...", false);
+  setTimeout(() => {
+    appendMessage("bot", "This is a dummy AI response to: " + message, true);
+    toggleButtons(false);
+  }, 1500);
+}
+
+// Scroll to bottom button
+scrollBtn.addEventListener("click", () => {
+  chat.scrollTop = chat.scrollHeight;
+});
+
+// Auto scroll on new messages
+const observer = new MutationObserver(() => {
+  if (chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 50) {
+    chat.scrollTop = chat.scrollHeight;
+  }
+});
+observer.observe(chat, { childList: true });
+
+// --- NEUE FUNKTIONEN FÜR DEINE ANFRAGE ---
+
+// 1. Willkommensnachricht mit Tutorial (englisch, Hinweis auf File-Funktion)
+function showWelcomeMessage() {
+  // Optional: Nur einmal pro Session anzeigen
+  // if (sessionStorage.getItem("welcome_shown")) return;
+  // sessionStorage.setItem("welcome_shown", "1");
+
+  appendMessage("bot", `
+👋 **Welcome to Fall AI!**
+
+Here's how to use this site:
+- Type your message and press **Enter** to send.
+- Use **Shift+Enter** for a new line.
+- You can upload files (feature still in testing – may not work 100% yet).
+- The AI and interface are currently in **English**.
+- **Login** to save your chats and unlock more features.
+
+**Note:** The file upload feature is experimental and may not work for all file types or sizes.
+  `.trim(), false);
+}
+
+// 2. Automatisches Login-Modal anzeigen, wenn nicht eingeloggt
+document.addEventListener("DOMContentLoaded", () => {
+  const user = JSON.parse(localStorage.getItem("user_data"));
+  if (!user) {
+    loginModal.classList.add("active");
+  }
+});
+
+// --- Initiale Aufrufe ---
+handleOAuthRedirect();
