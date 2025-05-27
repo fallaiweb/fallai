@@ -178,6 +178,7 @@ function handleOAuthRedirect() {
               : "https://cdn.discordapp.com/embed/avatars/0.png",
             provider: "discord",
           });
+          showWelcomeMessage();
         })
         .catch(() => {
           fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
@@ -191,14 +192,24 @@ function handleOAuthRedirect() {
                 avatar: user.picture,
                 provider: "google",
               });
+              showWelcomeMessage();
             })
             .catch(() => alert("Login failed."));
         });
       window.history.replaceState({}, document.title, window.location.pathname);
+    } else {
+      const user = JSON.parse(localStorage.getItem("user_data"));
+      if (user) {
+        updateUIForUser(user);
+        showWelcomeMessage();
+      }
     }
   } else {
     const user = JSON.parse(localStorage.getItem("user_data"));
-    if (user) updateUIForUser(user);
+    if (user) {
+      updateUIForUser(user);
+      showWelcomeMessage();
+    }
   }
 }
 
@@ -208,6 +219,7 @@ function saveUser(user) {
   logToDiscord("Login", `User logged in via ${user.provider}.`, user);
 }
 
+// User ID and chat storage key
 function getUserId() {
   const user = JSON.parse(localStorage.getItem("user_data"));
   if (!user) return null;
@@ -221,6 +233,7 @@ function getChatStorageKey() {
   return id ? `chat_history_${id}` : null;
 }
 
+// Chat history save/load/clear
 function saveChatHistory() {
   const key = getChatStorageKey();
   if (!key) return;
@@ -360,10 +373,10 @@ function appendFileBlock(role, filename, content, log = true) {
 
 // Code block detection
 function isCodeBlock(text) {
-  return /^``````$/.test(text.trim());
+  return /^```
 }
 function getCodeContent(text) {
-  return text.trim().replace(/^``````$/, '');
+  return text.trim().replace(/^```/, '').replace(/```
 }
 
 // Chat sending logic
@@ -406,7 +419,6 @@ function handleSend() {
     fileInput.value = "";
   }
 
-  
   // "More of that" feature
   if (message && isMoreOfThatTrigger(message)) {
     const lastAI = getLastAIMessage();
@@ -437,125 +449,81 @@ function handleSend() {
       appendMessage("user", message, true);
       const user = JSON.parse(localStorage.getItem("user_data"));
       logToDiscord("Message", `User sent: ${message}`, user);
-      toggleButtons(true);
-      sendToAI(message);
+      toggleButtons(false);
+      saveChatHistory();
     }
-  } else {
+    sendToAI(message);
+    userInput.value = "";
     autoResizeTextarea();
-    toggleButtons(false);
-    saveChatHistory();
   }
-  userInput.value = "";
-  autoResizeTextarea();
+}
+
+function toggleButtons(isSending) {
+  sendBtn.disabled = isSending;
+  stopBtn.style.display = isSending ? "inline-block" : "none";
+  userInput.disabled = isSending;
 }
 
 function handleStop() {
   if (abortController) {
     abortController.abort();
+    abortController = null;
     toggleButtons(false);
   }
 }
 
-// AI streaming response
-function showThinking() {
-  if (typingEl) typingEl.remove();
-  typingEl = document.createElement("div");
-  typingEl.className = "message bot typing-animation";
-  typingEl.textContent = "Fall AI is thinking";
-  chat.appendChild(typingEl);
-  chat.scrollTop = chat.scrollHeight;
-}
-
-function updateTypingIndicator(text) {
-  if (!typingEl) showThinking();
-  typingEl.textContent = text;
-  chat.scrollTop = chat.scrollHeight;
-}
-
-async function sendToAI(message) {
-  showThinking();
-  abortController = new AbortController();
-  let botMsg = "";
-
-  try {
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "llama3-70b-8192",
-        messages: [
-          { role: "system", content: "You are Fall AI, a helpful assistant." },
-          { role: "user", content: message },
-        ],
-        stream: true,
-      }),
-      signal: abortController.signal,
-    });
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-
-    let done = false;
-    while (!done) {
-      const { value, done: streamDone } = await reader.read();
-      done = streamDone;
-      if (value) {
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n").filter((line) => line.trim() !== "");
-        for (const line of lines) {
-          if (line.startsWith("data:")) {
-            const data = line.replace("data: ", "");
-            if (data === "[DONE]") continue;
-            try {
-              const parsed = JSON.parse(data);
-              const token = parsed.choices?.[0]?.delta?.content;
-              if (token) {
-                botMsg += token;
-                updateTypingIndicator(botMsg);
-              }
-            } catch {}
-          }
-        }
-      }
-    }
-
-    if (typingEl) typingEl.remove();
-
-    appendMessage("bot", botMsg, true);
-  } catch (error) {
-    if (typingEl) typingEl.remove();
-    if (error.name === "AbortError") {
-      appendMessage("bot", "(Answer canceled)");
-    } else {
-      appendMessage("bot", "An error occurred.");
-    }
-  } finally {
+// Dummy sendToAI function (muss durch echte AI-Integration ersetzt werden)
+function sendToAI(message) {
+  toggleButtons(true);
+  appendMessage("bot", "Processing your request...", false);
+  setTimeout(() => {
+    appendMessage("bot", "This is a dummy AI response to: " + message, true);
     toggleButtons(false);
-  }
+  }, 1500);
 }
 
-function toggleButtons(loading) {
-  sendBtn.style.display = loading ? "none" : "inline-flex";
-  stopBtn.style.display = loading ? "inline-flex" : "none";
-}
-
-// Scroll button
+// Scroll to bottom button
 scrollBtn.addEventListener("click", () => {
-  chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" });
-});
-chat.addEventListener("scroll", () => {
-  scrollBtn.style.display =
-    chat.scrollTop + chat.clientHeight < chat.scrollHeight - 100 ? "flex" : "none";
+  chat.scrollTop = chat.scrollHeight;
 });
 
-// Init icons
-lucide.createIcons();
-
-// On load
-window.addEventListener("load", () => {
-  handleOAuthRedirect();
-  updateFileBtnState();
+// Auto scroll on new messages
+const observer = new MutationObserver(() => {
+  if (chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 50) {
+    chat.scrollTop = chat.scrollHeight;
+  }
 });
+observer.observe(chat, { childList: true });
+
+// --- NEUE FUNKTIONEN FÜR DEINE ANFRAGE ---
+
+// 1. Willkommensnachricht mit Tutorial (englisch, Hinweis auf File-Funktion)
+function showWelcomeMessage() {
+  // Optional: Nur einmal pro Session anzeigen
+  // if (sessionStorage.getItem("welcome_shown")) return;
+  // sessionStorage.setItem("welcome_shown", "1");
+
+  appendMessage("bot", `
+👋 **Welcome to Fall AI!**
+
+Here's how to use this site:
+- Type your message and press **Enter** to send.
+- Use **Shift+Enter** for a new line.
+- You can upload files (feature still in testing – may not work 100% yet).
+- The AI and interface are currently in **English**.
+- **Login** to save your chats and unlock more features.
+
+**Note:** The file upload feature is experimental and may not work for all file types or sizes.
+  `.trim(), false);
+}
+
+// 2. Automatisches Login-Modal anzeigen, wenn nicht eingeloggt
+document.addEventListener("DOMContentLoaded", () => {
+  const user = JSON.parse(localStorage.getItem("user_data"));
+  if (!user) {
+    loginModal.classList.add("active");
+  }
+});
+
+// --- Initiale Aufrufe ---
+handleOAuthRedirect();
