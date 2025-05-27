@@ -130,7 +130,7 @@ logoutBtn.addEventListener("click", () => {
   const user = JSON.parse(localStorage.getItem("user_data"));
   logToDiscord("Logout", "User logged out.", user);
   localStorage.removeItem("user_data");
-  usernameSpan.textContent = "Guest";
+  usernameSpan.textContent = "Pinkie Guest";
   userAvatar.style.display = "none";
   loginBtn.style.display = "inline-flex";
   logoutBtn.style.display = "none";
