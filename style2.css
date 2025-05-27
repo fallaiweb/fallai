@@ -1,13 +1,13 @@
 :root {
-  --sidebar-width: 260px;
-  --main-bg: #18171c;
-  --sidebar-bg: #1e1d23;
-  --accent: #ffd580;
-  --bot-bg: #222127;
+  --sidebar-width: 250px;
+  --main-bg: #171a1f;
+  --sidebar-bg: #20232a;
+  --accent: #7ecbff;
+  --bot-bg: #22252b;
   --user-bg: #23282e;
-  --chat-scrollbar: #39373f;
-  --input-bg: #232127;
-  --border-radius: 18px;
+  --chat-scrollbar: #353a45;
+  --input-bg: #23262d;
+  --border-radius: 16px;
   --font-main: 'Inter', 'Segoe UI', Arial, sans-serif;
 }
 
@@ -15,7 +15,7 @@
 body {
   font-family: var(--font-main);
   background: var(--main-bg);
-  color: #f8f8f8;
+  color: #e9eef3;
   min-height: 100vh;
   letter-spacing: 0.01em;
 }
@@ -32,28 +32,28 @@ body {
   border-radius: var(--border-radius);
   margin: 1.5rem 0 1.5rem 1.5rem;
   padding: 2rem 1.3rem 1rem 1.3rem;
-  border: 1.5px solid #23222a;
+  border: 1px solid #22252b;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  min-width: 180px;
+  min-width: 160px;
 }
 .sidebar h2 {
-  font-size: 1.18rem;
+  font-size: 1.15rem;
   color: var(--accent);
   margin-bottom: 1.2em;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 .sidebar ul {
-  color: #e0e0e0;
-  font-size: 1.03rem;
-  gap: 0.8em;
+  color: #b8c1ce;
+  font-size: 1rem;
+  gap: 0.7em;
   padding-left: 1em;
-  opacity: 0.93;
+  opacity: 0.9;
 }
 .sidebar li {
-  margin-bottom: 0.4em;
+  margin-bottom: 0.3em;
   padding-left: 0.2em;
 }
 .sidebar li b, .sidebar li i {
@@ -73,18 +73,18 @@ body {
 header {
   background: var(--sidebar-bg);
   border-radius: var(--border-radius);
-  padding: 1.5rem 2.2rem 1.1rem 2.2rem;
-  margin-bottom: 1.2rem;
+  padding: 1.2rem 2rem 1rem 2rem;
+  margin-bottom: 1.1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1.5px solid #23222a;
+  border: 1px solid #23272e;
 }
 header h1 {
-  font-size: 2.1rem;
+  font-size: 2rem;
   color: var(--accent);
   font-weight: 800;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   margin: 0;
 }
 
@@ -93,10 +93,10 @@ header h1 {
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: #23222a;
+  background: #20232a;
   border-radius: 999px;
   padding: 0.3em 1em;
-  border: 1px solid #28262c;
+  border: 1px solid #23272e;
 }
 #user-avatar {
   width: 34px;
@@ -109,7 +109,7 @@ header h1 {
 }
 #username {
   font-size: 1rem;
-  color: #fff7e0;
+  color: #e9eef3;
   max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -119,9 +119,9 @@ header h1 {
 
 /* Auth/Action Buttons */
 .plain-auth-btn, #file-btn, footer button {
-  background: linear-gradient(90deg, #23222a 60%, #2a292f 100%);
+  background: #23262d;
   color: var(--accent);
-  border: 1.5px solid #35333c;
+  border: 1px solid #353a45;
   border-radius: 999px;
   padding: 0.5em 1.3em;
   font-weight: 600;
@@ -139,14 +139,14 @@ header h1 {
   gap: 0.5em;
 }
 .plain-auth-btn:hover, #file-btn:hover, footer button:hover {
-  background: linear-gradient(90deg, #2c292f 60%, #39373f 100%);
-  color: #fff7e0;
+  background: #28313b;
+  color: #fff;
   border-color: var(--accent);
 }
 .plain-auth-btn:active, #file-btn:active, footer button:active {
-  background: #18171c;
-  color: #ffd580;
-  border-color: #ffd580;
+  background: #181a20;
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 /* File Preview (above textarea) */
@@ -163,8 +163,8 @@ header h1 {
   display: flex;
   align-items: center;
   gap: 0.4em;
-  background: #23222a;
-  border: 1.5px solid #35333c;
+  background: #23262d;
+  border: 1px solid #353a45;
   border-radius: 999px;
   padding: 0.18em 0.7em;
   min-width: 0;
@@ -197,8 +197,8 @@ header h1 {
 
 /* File Block (in chat) - compact */
 .file-block {
-  background: #23222a;
-  border: 1.5px solid #35333c;
+  background: #23262d;
+  border: 1px solid #353a45;
   border-radius: 10px;
   padding: 0.28em 0.45em;
   margin: 0.2em 0;
@@ -217,11 +217,11 @@ header h1 {
   margin-bottom: 0.07em;
 }
 .file-block .file-content {
-  background: #18171c;
+  background: #181a20;
   border-radius: 5px;
   padding: 0.18em 0.35em;
   font-family: "Fira Mono", "Consolas", monospace;
-  color: #ffd580;
+  color: #7ecbff;
   font-size: 0.89em;
   white-space: pre-wrap;
   overflow-x: auto;
@@ -229,9 +229,9 @@ header h1 {
 }
 .file-block .copy-btn {
   align-self: flex-end;
-  background: #23222a;
+  background: #23262d;
   color: var(--accent);
-  border: 1px solid #35333c;
+  border: 1px solid #353a45;
   border-radius: 6px;
   font-size: 0.78em;
   padding: 0.11em 0.7em;
@@ -240,24 +240,24 @@ header h1 {
   transition: background 0.12s;
 }
 .file-block .copy-btn:hover {
-  background: #35333c;
-  color: #ffd580;
+  background: #353a45;
+  color: #fff;
 }
 
 /* Markdown support */
 .message strong, .file-content strong { font-weight: bold; }
 .message em, .file-content em { font-style: italic; }
 .message code, .file-content code {
-  background: #18171c;
-  color: #ffd580;
+  background: #181a20;
+  color: #7ecbff;
   border-radius: 3px;
   padding: 2px 5px;
   font-family: "Fira Mono", "Consolas", monospace;
 }
-.message a, .file-content a { color: #ffd580; text-decoration: underline; }
+.message a, .file-content a { color: #7ecbff; text-decoration: underline; }
 pre, .file-content pre {
-  background: #18171c;
-  color: #ffd580;
+  background: #181a20;
+  color: #7ecbff;
   border-radius: 5px;
   padding: 0.18em 0.35em;
   font-family: "Fira Mono", "Consolas", monospace;
@@ -272,8 +272,8 @@ pre, .file-content pre {
   flex: 1;
   background: var(--bot-bg);
   border-radius: var(--border-radius);
-  padding: 1.2rem 1rem 1.2rem 1rem;
-  margin-bottom: 1.2rem;
+  padding: 1.1rem 1rem 1.1rem 1rem;
+  margin-bottom: 1.1rem;
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
@@ -300,12 +300,12 @@ pre, .file-content pre {
   margin-bottom: 0.3rem;
   max-width: 75%;
   transition: background 0.18s;
-  border: 1.5px solid #23222a;
+  border: 1px solid #23272e;
 }
 .message.user {
   background: var(--user-bg);
   margin-left: auto;
-  border: 1.5px solid var(--accent);
+  border: 1px solid var(--accent);
 }
 .message.bot {
   background: var(--bot-bg);
@@ -338,35 +338,35 @@ pre, .file-content pre {
   display: none;
   z-index: 999;
   transition: background 0.2s;
+  border: none;
 }
 .scroll-to-bottom:hover {
-  background: #ffe6a0;
+  background: #a2e3ff;
 }
 .scroll-to-bottom svg {
   width: 22px;
   height: 22px;
-  color: #18171c;
+  color: #171a1f;
 }
 
 /* Footer */
 footer {
   background: var(--sidebar-bg);
   border-radius: var(--border-radius);
-  padding: 1.1rem 1.5rem;
+  padding: 1rem 1.5rem;
   display: flex;
   gap: 0.6rem;
   align-items: center;
-  border: 1.5px solid #23222a;
+  border: 1px solid #23272e;
 }
 
 textarea {
   background: var(--input-bg);
   border-radius: 1.2rem;
   border: none;
-  color: #ffd580;
+  color: var(--accent);
   font-size: 1.05rem;
   padding: 0.8rem 1.2rem;
-  transition: box-shadow 0.15s;
   flex: 1;
   min-height: 36px;
   max-height: 120px;
@@ -381,7 +381,7 @@ textarea:focus {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(24, 23, 28, 0.65);
+  background: rgba(23, 26, 31, 0.7);
   justify-content: center;
   align-items: center;
   z-index: 1000;
@@ -390,8 +390,8 @@ textarea:focus {
   display: flex;
 }
 .login-modal-content, .confirm-modal-content {
-  background: #23222a;
-  border-radius: 18px;
+  background: #23262d;
+  border-radius: 16px;
   padding: 28px 24px 18px 24px;
   display: flex;
   flex-direction: column;
@@ -399,11 +399,11 @@ textarea:focus {
   gap: 18px;
   min-width: 220px;
   text-align: center;
-  border: 1.5px solid #39373f;
+  border: 1px solid #353a45;
 }
 .login-modal-title, .confirm-modal-title {
   color: var(--accent);
-  font-size: 1.17rem;
+  font-size: 1.13rem;
   margin-bottom: 4px;
   font-weight: bold;
 }
@@ -412,7 +412,7 @@ textarea:focus {
   align-items: center;
   gap: 8px;
   background: var(--accent);
-  color: #18171c;
+  color: #171a1f;
   border: none;
   border-radius: 999px;
   padding: 9px 28px;
@@ -428,8 +428,8 @@ textarea:focus {
   width: 22px; height: 22px; display: inline-block;
 }
 .login-provider-btn:hover {
-  background: #ffe6a0;
-  color: #18171c;
+  background: #a2e3ff;
+  color: #171a1f;
 }
 .login-cancel-btn {
   margin-top: 5px;
@@ -448,7 +448,7 @@ textarea:focus {
   gap: 1.1em;
 }
 .confirm-modal-text {
-  color: #ffd580;
+  color: var(--accent);
   font-size: 0.97rem;
   margin-bottom: 0.4em;
   opacity: 0.92;
@@ -469,17 +469,17 @@ textarea:focus {
 }
 .confirm-btn-yes {
   background: var(--accent);
-  color: #18171c;
+  color: #171a1f;
 }
 .confirm-btn-yes:hover {
-  background: #ffe6a0;
+  background: #a2e3ff;
 }
 .confirm-btn-no {
-  background: #35333c;
-  color: #ffd580;
+  background: #353a45;
+  color: var(--accent);
 }
 .confirm-btn-no:hover {
-  background: #39373f;
+  background: #3e4652;
 }
 
 /* Responsive */
