@@ -314,9 +314,10 @@ pre, .file-content pre {
   margin-bottom: 0.5rem;
   box-shadow: 0 2px 12px #0003;
   border: 1.5px solid #35333c;
-  max-width: 75%;
+  max-width: 95%;   /* ODER: einfach entfernen */
   transition: background 0.18s;
 }
+
 .message.user {
   background: var(--user-bg);
   margin-left: auto;
