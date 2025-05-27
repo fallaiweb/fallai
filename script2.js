@@ -30,14 +30,14 @@ let abortController = null;
 let typingEl = null;
 let pendingFiles = [];
 
-// --- Willkommensnachricht & Command-System ---
+// --- Welcome message & Command system ---
 
 window.addEventListener("DOMContentLoaded", () => {
   handleOAuthRedirect();
   if (!localStorage.getItem("welcome_shown")) {
     appendMessage(
       "bot",
-      "👋 **Willkommen bei Fall AI!**\n\nTippe `/help` für eine Liste der verfügbaren Commands oder frage einfach drauf los!"
+      "👋 **Welcome to Fall AI!**\n\nType `/help` for a list of available commands or just start chatting!"
     );
     localStorage.setItem("welcome_shown", "1");
   }
@@ -46,33 +46,33 @@ window.addEventListener("DOMContentLoaded", () => {
 const COMMANDS = [
   {
     cmd: "/help",
-    desc: "Zeigt diese Hilfeseite an.",
+    desc: "Show this help message.",
     action: () => {
       appendMessage(
         "bot",
-        `**Verfügbare Commands:**\n\n` +
+        `**Available commands:**\n\n` +
         COMMANDS.map(c => `\`${c.cmd}\` – ${c.desc}`).join("\n")
       );
     }
   },
   {
     cmd: "/discord-ai",
-    desc: "Discord Bot einladen",
+    desc: "Invite the Discord bot.",
     action: () => {
       window.open("https://discord.com/oauth2/authorize?client_id=1376180153654448180", "_blank");
-      appendMessage("bot", "🔗 [Discord Bot Einladung geöffnet](https://discord.com/oauth2/authorize?client_id=1376180153654448180)");
+      appendMessage("bot", "🔗 [Discord Bot invite opened](https://discord.com/oauth2/authorize?client_id=1376180153654448180)");
     }
   },
   {
     cmd: "/about",
-    desc: "Infos über Fall AI anzeigen",
+    desc: "Show information about Fall AI.",
     action: () => {
-      appendMessage("bot", "🍂 **Fall AI** ist ein experimenteller KI-Chat. Login für mehr Features!");
+      appendMessage("bot", "🍂 **Fall AI** is an experimental AI chat. Log in for more features!");
     }
   },
   {
     cmd: "/clear",
-    desc: "Chatverlauf löschen",
+    desc: "Clear the chat history.",
     action: () => {
       clearBtn.click();
     }
@@ -509,7 +509,7 @@ function handleSend() {
   const message = userInput.value.trim();
   if (!message && pendingFiles.length === 0) return;
 
-  // Command ausführen
+  // Command execution
   if (message.startsWith("/")) {
     if (handleCommand(message)) {
       userInput.value = "";
