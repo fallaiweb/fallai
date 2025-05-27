@@ -47,7 +47,10 @@ body {
   margin-bottom: 1.2em;
   font-weight: 700;
   letter-spacing: 0.05em;
-  text-shadow: 0 2px 8px var(--accent-glow);
+  /* Glow entfernt, stattdessen Farbverlauf */
+  background: linear-gradient(90deg, #ffd580 70%, #ffedb8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .sidebar ul {
   color: #e0e0e0;
@@ -91,7 +94,10 @@ header h1 {
   font-weight: 800;
   letter-spacing: 2px;
   margin: 0;
-  text-shadow: 0 2px 12px var(--accent-glow), 0 1px 0 #0005;
+  /* Glow entfernt, stattdessen Farbverlauf */
+  background: linear-gradient(90deg, #ffd580 70%, #ffedb8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* User Info */
@@ -102,7 +108,7 @@ header h1 {
   background: #23222a;
   border-radius: 999px;
   padding: 0.3em 1em;
-  box-shadow: 0 2px 14px #0002;
+  /* Kein Glow mehr */
   border: 1px solid #28262c;
 }
 #user-avatar {
@@ -113,7 +119,7 @@ header h1 {
   border: 2px solid var(--accent);
   background: #fff;
   margin-left: 0.2rem;
-  box-shadow: 0 0 0 2px var(--accent-glow);
+  /* Glow entfernt */
 }
 #username {
   font-size: 1rem;
@@ -127,18 +133,17 @@ header h1 {
 
 /* Auth/Action Buttons */
 .plain-auth-btn, #file-btn, footer button {
-  background: linear-gradient(90deg, #23222a 60%, #2a292f 100%);
-  color: var(--accent);
+  background: linear-gradient(90deg, #ffd580 0%, #ffedb8 100%);
+  color: #18171c;
   border: 1.5px solid #35333c;
   border-radius: 999px;
   padding: 0.5em 1.3em;
   font-weight: 600;
   font-size: 1rem;
-  box-shadow: 0 2px 8px #0002;
+  /* Kein Glow mehr */
   transition: 
     background 0.18s, 
     color 0.18s, 
-    box-shadow 0.18s, 
     border 0.18s;
   margin: 0 0.2em;
   outline: none;
@@ -149,10 +154,9 @@ header h1 {
   gap: 0.5em;
 }
 .plain-auth-btn:hover, #file-btn:hover, footer button:hover {
-  background: linear-gradient(90deg, #2c292f 60%, #39373f 100%);
-  color: #fff7e0;
+  background: linear-gradient(90deg, #ffedb8 0%, #ffd580 100%);
+  color: #18171c;
   border-color: var(--accent);
-  box-shadow: 0 4px 18px var(--accent-glow);
 }
 .plain-auth-btn:active, #file-btn:active, footer button:active {
   background: #18171c;
@@ -352,11 +356,10 @@ pre, .file-content pre {
   display: none;
   z-index: 999;
   transition: background 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 16px var(--accent-glow);
+  /* Glow entfernt */
 }
 .scroll-to-bottom:hover {
   background: #ffe6a0;
-  box-shadow: 0 4px 24px var(--accent-glow);
 }
 .scroll-to-bottom svg {
   width: 22px;
@@ -384,7 +387,7 @@ textarea {
   font-size: 1.05rem;
   padding: 0.8rem 1.2rem;
   transition: box-shadow 0.15s;
-  box-shadow: 0 2px 8px #0002;
+  /* Kein Glow mehr */
   flex: 1;
   min-height: 36px;
   max-height: 120px;
@@ -392,7 +395,6 @@ textarea {
 }
 textarea:focus {
   outline: 2px solid var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-glow);
 }
 
 /* Modals */
@@ -426,7 +428,10 @@ textarea:focus {
   font-size: 1.17rem;
   margin-bottom: 4px;
   font-weight: bold;
-  text-shadow: 0 2px 8px var(--accent-glow);
+  /* Glow entfernt, stattdessen Verlauf */
+  background: linear-gradient(90deg, #ffd580 70%, #ffedb8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .login-provider-btn {
   display: flex;
@@ -444,7 +449,7 @@ textarea:focus {
   justify-content: center;
   min-width: 150px;
   font-weight: 600;
-  box-shadow: 0 2px 12px var(--accent-glow);
+  /* Kein Glow mehr */
 }
 .login-provider-btn img {
   width: 22px; height: 22px; display: inline-block;
